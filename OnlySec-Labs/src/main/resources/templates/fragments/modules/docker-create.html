@@ -1,0 +1,221 @@
+<div th:fragment="createContainer">
+    <script>
+        function showCreateContainer(event) {
+            event.stopPropagation();
+            document.getElementById('createContainerModal').style.display = 'block';
+        }
+
+        function hideCreateContainer() {
+            document.getElementById('createContainerModal').style.display = 'none';
+        }
+
+        function switchCreateMethod(method) {
+            const imageForm = document.getElementById('imageForm');
+            const dockerfileForm = document.getElementById('dockerfileForm');
+            const commandForm = document.getElementById('commandForm');
+            const imageBtn = document.getElementById('imageMethodBtn');
+            const dockerfileBtn = document.getElementById('dockerfileMethodBtn');
+            const commandBtn = document.getElementById('commandMethodBtn');
+
+            // 隐藏所有表单
+            imageForm.style.display = 'none';
+            dockerfileForm.style.display = 'none';
+            commandForm.style.display = 'none';
+
+            // 重置所有按钮样式
+            imageBtn.style.background = 'rgba(0, 255, 157, 0.1)';
+            dockerfileBtn.style.background = 'rgba(0, 255, 157, 0.1)';
+            commandBtn.style.background = 'rgba(0, 255, 157, 0.1)';
+
+            // 显示选中的表单和按钮样式
+            switch(method) {
+                case 'image':
+                    imageForm.style.display = 'block';
+                    imageBtn.style.background = 'rgba(0, 255, 157, 0.2)';
+                    break;
+                case 'dockerfile':
+                    dockerfileForm.style.display = 'block';
+                    dockerfileBtn.style.background = 'rgba(0, 255, 157, 0.2)';
+                    break;
+                case 'command':
+                    commandForm.style.display = 'block';
+                    commandBtn.style.background = 'rgba(0, 255, 157, 0.2)';
+                    break;
+            }
+        }
+
+        function createContainer() {
+            const imageForm = document.getElementById('imageForm');
+            const formArea = document.getElementById('formArea');
+            const progressArea = document.getElementById('progressArea');
+            const createButton = document.getElementById('createButton');
+            const buildLogs = document.getElementById('buildLogs');
+            const progressBar = document.getElementById('progressBar');
+            const progressStatus = document.getElementById('progressStatus');
+
+            // 显示进度区域
+            formArea.style.display = 'none';
+            progressArea.style.display = 'block';
+            createButton.disabled = true;
+            buildLogs.innerHTML = '';
+            
+            if (imageForm.style.display === 'block') {
+                // 通过镜像创建容器
+                const portMappings = {};
+                document.querySelectorAll('#portMappings .mapping-row').forEach(row => {
+                    const hostPort = row.querySelector('.hostPort').value;
+                    const containerPort = row.querySelector('.containerPort').value;
+                    if (hostPort && containerPort) {
+                        portMappings[hostPort] = containerPort;
+                    }
+                });
+
+                const containerDTO = {
+                    imageName: document.getElementById('imageName').value,
+                    containerName: document.getElementById('containerName').value,
+                    ports: portMappings
+                };
+
+                // 更新状态
+                progressStatus.textContent = '创建容器中...';
+                progressBar.style.width = '50%';
+                addBuildLog('开始创建容器...');
+                
+                fetch('/api/docker/containers/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(containerDTO)
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        progressBar.style.width = '100%';
+                        progressStatus.textContent = '创建成功';
+                        addBuildLog('容器创建成功: ' + result.data);
+                        setTimeout(() => {
+                            hideCreateContainer();
+                            updateContainerList();
+                        }, 1500);
+                    } else {
+                        progressBar.style.background = '#ff6b6b';
+                        progressStatus.textContent = '创建失败';
+                        progressStatus.style.color = '#ff6b6b';
+                        addBuildLog('容器创建失败: ' + result.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    progressBar.style.background = '#ff6b6b';
+                    progressStatus.textContent = '创建失败';
+                    progressStatus.style.color = '#ff6b6b';
+                    addBuildLog('创建请求失败: ' + error.message, 'error');
+                });
+            } else {
+                // 通过Dockerfile创建容器
+                const containerDTO = {
+                    dockerfilePath: document.getElementById('dockerfile').value,
+                    containerName: document.getElementById('newImageName').value,
+                    ports: {}
+                };
+
+                progressStatus.textContent = '构建镜像中...';
+                progressBar.style.width = '30%';
+                addBuildLog('开始构建镜像...');
+
+                // 创建 EventSource 接收构建日志
+                const eventSource = new EventSource('/api/docker/containers/build');
+                
+                eventSource.addEventListener('log', event => {
+                    addBuildLog(event.data);
+                    progressBar.style.width = '60%';
+                });
+
+                eventSource.addEventListener('complete', event => {
+                    progressBar.style.width = '100%';
+                    progressStatus.textContent = '构建成功';
+                    addBuildLog(event.data, 'success');
+                    eventSource.close();
+                    setTimeout(() => {
+                        hideCreateContainer();
+                        updateContainerList();
+                    }, 1500);
+                });
+
+                eventSource.addEventListener('error', event => {
+                    const errorData = event.data ? JSON.parse(event.data) : { message: '未知错误' };
+                    progressBar.style.background = '#ff6b6b';
+                    progressStatus.textContent = '构建失败';
+                    progressStatus.style.color = '#ff6b6b';
+                    addBuildLog('构建失败: ' + errorData.message, 'error');
+                    eventSource.close();
+                });
+
+                fetch('/api/docker/containers/build', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(containerDTO)
+                });
+            }
+        }
+
+        function addBuildLog(message, type = 'info') {
+            const buildLogs = document.getElementById('buildLogs');
+            const color = type === 'error' ? '#ff6b6b' : 
+                         type === 'success' ? '#00ff9d' : 
+                         '#888';
+            const timestamp = new Date().toLocaleTimeString();
+            
+            buildLogs.innerHTML += `<div style="color: ${color};">[${timestamp}] ${message}</div>`;
+            buildLogs.scrollTop = buildLogs.scrollHeight;
+        }
+
+        function addPortMapping() {
+            const portMappings = document.getElementById('portMappings');
+            const newMapping = document.createElement('div');
+            newMapping.className = 'mapping-row';
+            newMapping.style.cssText = `
+                display: flex;
+                gap: 10px;
+                margin-top: 10px;
+            `;
+            newMapping.innerHTML = `
+                <input type="text" class="hostPort" style="
+                    flex: 1;
+                    padding: 8px;
+                    background: #2a2a2a;
+                    border: 1px solid #444;
+                    color: #fff;
+                    border-radius: 4px;
+                " placeholder="主机端口">
+                <span style="color: #888; line-height: 35px;">:</span>
+                <input type="text" class="containerPort" style="
+                    flex: 1;
+                    padding: 8px;
+                    background: #2a2a2a;
+                    border: 1px solid #444;
+                    color: #fff;
+                    border-radius: 4px;
+                " placeholder="容器端口">
+                <button onclick="removePortMapping(this)" style="
+                    background: rgba(255, 107, 107, 0.1);
+                    border: 1px solid #ff6b6b;
+                    color: #ff6b6b;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                ">删除</button>
+            `;
+            portMappings.appendChild(newMapping);
+        }
+
+        function removePortMapping(button) {
+            button.closest('.mapping-row').remove();
+        }
+    </script>
+
+    <!-- 创建容器的模态框 -->
+    <div th:replace="fragments/modals/create-container-modal :: create-container-modal"></div>
+</div>

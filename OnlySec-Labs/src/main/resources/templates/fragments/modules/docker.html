@@ -1,0 +1,1323 @@
+<div th:fragment="docker" style="width: 100%;">
+    <!-- Docker 模块标题和连接配置 -->
+    <div class="module-header">
+        <i class="fas fa-chevron-down toggle-icon"></i>
+        <h2 class="module-title">Docker靶场</h2>
+        
+        <!-- 右侧状态和配置按钮 -->
+        <div class="docker-connection" style="display: flex; align-items: center; gap: 15px; margin-left: auto;">
+            <span id="dockerStatus" style="color: #888; display: flex; align-items: center; gap: 5px;">
+                <i class="fas fa-circle" style="color: #00ff9d; font-size: 12px;"></i> 
+                <span>已连接</span>
+            </span>
+            <button onclick="showCreateContainer(event)" style="
+                background: rgba(0, 255, 157, 0.1);
+                border: 1px solid #00ff9d;
+                color: #00ff9d;
+                padding: 5px 15px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 14px;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            ">
+                <i class="fas fa-plus"></i> 创建容器
+            </button>
+            <button onclick="showConfig(event)" style="
+                background: rgba(0, 255, 157, 0.1);
+                border: 1px solid #00ff9d;
+                color: #00ff9d;
+                padding: 5px 15px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 14px;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            ">
+                <i class="fas fa-cog"></i> 配置连接
+            </button>
+        </div>
+    </div>
+
+    <!-- 将日志模块和容器列表包装在一个div中，使用flex-direction: column -->
+    <div class="docker-content" style="
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    ">
+        <!-- 日志显示区域 -->
+        <div class="docker-logs-area" style="
+            margin: 10px 20px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(0, 255, 157, 0.2);
+            border-radius: 8px;
+            font-size: 12px;
+            position: relative;
+            width: calc(100% - 40px);
+            box-sizing: border-box;
+        ">
+            <!-- 清除按钮 -->
+            <button onclick="clearLogs()" style="
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                background: rgba(255, 107, 107, 0.1);
+                border: 1px solid #ff6b6b;
+                color: #ff6b6b;
+                padding: 4px 8px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 11px;
+                white-space: nowrap;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                z-index: 1;
+            ">
+                <i class="fas fa-trash"></i>
+                <span>清除日志</span>
+            </button>
+
+            <div class="logs-header" style="
+                margin-bottom: 8px;
+                min-height: 24px;
+            ">
+                <div style="
+                    color: #00ff9d;
+                    font-size: 14px;
+                    font-weight: bold;
+                ">操作日志</div>
+            </div>
+            
+            <div id="globalLogs" style="
+                height: 100px;
+                overflow-y: auto;
+                font-family: monospace;
+                background: rgba(0, 0, 0, 0.6);
+                padding: 8px;
+                border-radius: 4px;
+                color: #888;
+                font-size: 11px;
+                line-height: 1.4;
+                word-wrap: break-word;
+                white-space: pre-wrap;
+            "></div>
+        </div>
+
+        <!-- 容器列表区域 -->
+        <div id="containerList" style="
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 0 20px 20px;
+            width: 100%;
+            box-sizing: border-box;
+        ">
+            <!-- 容器列表将通过 JavaScript 动态填充 -->
+        </div>
+    </div>
+
+    <!-- Docker 配置对话框 -->
+    <div id="configModal" style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(5px);
+        z-index: 1000;
+    ">
+        <div style="
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #00ff9d;
+            width: 600px;
+            box-shadow: 0 0 20px rgba(0, 255, 157, 0.2);
+            z-index: 1001;
+        ">
+            <h3 style="color: #00ff9d; margin-bottom: 20px;">Docker 连接配置</h3>
+            <div style="margin-bottom: 20px;">
+                <label style="color: #888; display: block; margin-bottom: 5px;">Docker Host:</label>
+                <input type="text" id="dockerHost" style="width: 100%; padding: 8px; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 4px;" placeholder="tcp://localhost:2375">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button onclick="testConnection(event)" style="
+                    background: rgba(0, 255, 157, 0.1);
+                    border: 1px solid #00ff9d;
+                    color: #00ff9d;
+                    padding: 8px 15px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                ">
+                    测试连接
+                </button>
+                <button onclick="saveConfig(event)" style="
+                    background: #00ff9d;
+                    border: none;
+                    color: #000;
+                    padding: 8px 15px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                ">
+                    保存配置
+                </button>
+                <button onclick="hideConfig(event)" style="
+                    background: #444;
+                    border: none;
+                    color: #fff;
+                    padding: 8px 15px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                ">
+                    取消
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加创建容器的模态框 -->
+    <div id="createContainerModal" style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(5px);
+        z-index: 1000;
+    ">
+        <div class="modal-content" style="
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #00ff9d;
+            width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 0 20px rgba(0, 255, 157, 0.2);
+        ">
+            <h3 style="color: #00ff9d; margin-bottom: 20px;">创建容器</h3>
+            
+            <!-- 表单区域 -->
+            <div id="formArea">
+                <!-- 使用Dockerfile创建的表单 -->
+                <div id="dockerfileForm">
+                    <div style="margin-bottom: 15px;">
+                        <label style="color: #888; display: block; margin-bottom: 5px;">Dockerfile内容</label>
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <button onclick="document.getElementById('dockerfileUpload').click()" style="
+                                background: rgba(0, 255, 157, 0.1);
+                                border: 1px solid #00ff9d;
+                                color: #00ff9d;
+                                padding: 4px 8px;
+                                border-radius: 4px;
+                                cursor: pointer;
+                                font-size: 12px;
+                                display: flex;
+                                align-items: center;
+                                gap: 4px;
+                            ">
+                                <i class="fas fa-upload"></i> 上传Dockerfile
+                            </button>
+                            <input type="file" id="dockerfileUpload" style="display: none;" accept="*/*">
+                        </div>
+                        <textarea id="dockerfile" style="
+                            width: 100%;
+                            height: 200px;
+                            padding: 8px;
+                            background: #2a2a2a;
+                            border: 1px solid #444;
+                            color: #fff;
+                            border-radius: 4px;
+                            font-family: monospace;
+                            resize: vertical;
+                        " placeholder="输入Dockerfile内容或上传Dockerfile文件"></textarea>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="color: #888; display: block; margin-bottom: 5px;">容器名称</label>
+                        <input type="text" id="newImageName" style="
+                            width: 100%;
+                            padding: 8px;
+                            background: #2a2a2a;
+                            border: 1px solid #444;
+                            color: #fff;
+                            border-radius: 4px;
+                        " placeholder="输入容器名称">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 进度和日志区域 -->
+            <div id="progressArea" style="display: none;">
+                <div style="margin-bottom: 15px;">
+                    <div style="
+                        background: #2a2a2a;
+                        border-radius: 4px;
+                        height: 6px;
+                        overflow: hidden;
+                    ">
+                        <div id="progressBar" style="
+                            width: 0%;
+                            height: 100%;
+                            background: #00ff9d;
+                            transition: width 0.3s ease;
+                        "></div>
+                    </div>
+                    <div id="progressStatus" style="
+                        color: #888;
+                        font-size: 12px;
+                        margin-top: 5px;
+                        text-align: center;
+                    ">准备中...</div>
+                </div>
+                <div id="buildLogs" style="
+                    background: #2a2a2a;
+                    border-radius: 4px;
+                    padding: 10px;
+                    height: 200px;
+                    overflow-y: auto;
+                    font-family: monospace;
+                    font-size: 12px;
+                    color: #888;
+                "></div>
+            </div>
+
+            <!-- 按钮区域 -->
+            <div style="
+                display: flex;
+                justify-content: flex-end;
+                gap: 10px;
+                margin-top: 20px;
+                padding-top: 20px;
+                border-top: 1px solid #444;
+            ">
+                <button onclick="hideCreateContainer()" style="
+                    background: rgba(255, 107, 107, 0.1);
+                    border: 1px solid #ff6b6b;
+                    color: #ff6b6b;
+                    padding: 8px 20px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                ">取消</button>
+                <button onclick="createContainer()" id="createButton" style="
+                    background: rgba(0, 255, 157, 0.1);
+                    border: 1px solid #00ff9d;
+                    color: #00ff9d;
+                    padding: 8px 20px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                ">创建</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 修改折叠功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const moduleHeader = document.querySelector('.module-header');
+            const dockerContent = document.querySelector('.docker-content');
+            const toggleIcon = moduleHeader.querySelector('.toggle-icon');
+
+            moduleHeader.addEventListener('click', function() {
+                const isVisible = dockerContent.style.display !== 'none';
+                dockerContent.style.display = isVisible ? 'none' : 'block';
+                toggleIcon.style.transform = isVisible ? 'rotate(-90deg)' : 'rotate(0)';
+            });
+        });
+
+        function showConfig(event) {
+            event.stopPropagation();
+            document.getElementById('configModal').style.display = 'block';
+        }
+
+        function hideConfig(event) {
+            event.stopPropagation();
+            document.getElementById('configModal').style.display = 'none';
+        }
+
+        // 保存当前连接状态
+        let isConnected = false;
+
+        // 测试连接
+        function testConnection(event) {
+            event.stopPropagation();
+            const dockerHost = document.getElementById('dockerHost').value;
+            if (!dockerHost) {
+                alert('请输入Docker Host地址');
+                return;
+            }
+            
+            fetch('/api/docker/connect', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    dockerHost: dockerHost
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('连接测试成功！');
+                } else {
+                    alert('连接测试失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('请求失败：' + error.message);
+            });
+        }
+
+        // 保存配置
+        function saveConfig(event) {
+            event.stopPropagation();
+            const dockerHost = document.getElementById('dockerHost').value;
+            if (!dockerHost) {
+                alert('请输入Docker Host地址');
+                return;
+            }
+            
+            fetch('/api/docker/connect', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    dockerHost: dockerHost
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    isConnected = true;
+                    hideConfig(event);
+                    updateConnectionStatus();
+                    // 接调用更新容器列表
+                    fetch('/api/docker/listContainers')
+                        .then(response => response.json())
+                        .then(containers => {
+                            const containerList = document.getElementById('containerList');
+                            containerList.innerHTML = '';
+
+                            if (Array.isArray(containers) && containers.length > 0) {
+                                containers.forEach(container => {
+                                    const card = createContainerCard(container);
+                                    containerList.appendChild(card);
+                                });
+                            } else {
+                                containerList.innerHTML = `
+                                    <div style="
+                                        grid-column: 1 / -1;
+                                        text-align: center;
+                                        padding: 40px;
+                                        color: #888;
+                                        font-size: 14px;
+                                        background: rgba(0, 0, 0, 0.8);
+                                        border-radius: 8px;
+                                    ">
+                                        <i class="fas fa-info-circle" style="margin-right: 8px;"></i>
+                                        当前没有容器
+                                    </div>
+                                `;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('获取容器列表失败：', error);
+                        });
+                } else {
+                    alert('连接失败：' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('请求失败：' + error.message);
+            });
+        }
+
+        // 更新连接状态
+        function updateConnectionStatus() {
+            fetch('/api/docker/connection')
+                .then(response => response.json())
+                .then(data => {
+                    const statusIcon = document.querySelector('#dockerStatus i');
+                    const statusText = document.querySelector('#dockerStatus span');
+                    isConnected = data.success;
+                    
+                    if (data.success) {
+                        statusIcon.style.color = '#00ff9d';
+                        statusText.textContent = '已连接';
+                        // 如果连接状态变为已连接，更新容器列表
+                        updateContainerList();
+                    } else {
+                        statusIcon.style.color = '#ff6b6b';
+                        statusText.textContent = '未连接';
+                        // 清空容器列表
+                        document.getElementById('containerList').innerHTML = '';
+                    }
+
+                    // 如果有保存的配置，显示在输入��中
+                    if (data.host) {
+                        document.getElementById('dockerHost').value = data.host;
+                    }
+                })
+                .catch(error => {
+                    console.error('获取状态失败：', error);
+                    isConnected = false;
+                });
+        }
+
+        // 启动容器
+        function startContainer(containerId) {
+            addLog(`正在启动容器 ${containerId.substring(0, 12)}...`);
+            fetch(`/api/docker/containers/${containerId}/start`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    addLog(`容器 ${containerId.substring(0, 12)} 启动成功`, 'success');
+                    updateContainerList();
+                } else {
+                    addLog(`容器 ${containerId.substring(0, 12)} 启动失败: ${data.message}`, 'error');
+                }
+            })
+            .catch(error => {
+                addLog(`启动请求失败: ${error.message}`, 'error');
+            });
+        }
+
+        // 停止容器
+        function stopContainer(containerId) {
+            addLog(`正在停止容器 ${containerId.substring(0, 12)}...`);
+            fetch(`/api/docker/containers/${containerId}/stop`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    addLog(`容器 ${containerId.substring(0, 12)} 停止成功`, 'success');
+                    updateContainerList();
+                } else {
+                    addLog(`容器 ${containerId.substring(0, 12)} 停止失败: ${data.message}`, 'error');
+                }
+            })
+            .catch(error => {
+                addLog(`停止请求失败: ${error.message}`, 'error');
+            });
+        }
+
+        // 重启容器
+        function restartContainer(containerId) {
+            addLog(`正在重启容器 ${containerId.substring(0, 12)}...`);
+            fetch(`/api/docker/containers/${containerId}/restart`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    addLog(`容器 ${containerId.substring(0, 12)} 重启成功`, 'success');
+                    updateContainerList();
+                } else {
+                    addLog(`容器 ${containerId.substring(0, 12)} 重启失败: ${data.message}`, 'error');
+                }
+            })
+            .catch(error => {
+                addLog(`重启��求失败: ${error.message}`, 'error');
+            });
+        }
+
+        // 删除容器
+        function deleteContainer(containerId) {
+            addLog(`正在删除容器 ${containerId.substring(0, 12)}...`);
+            if (!confirm('确定要删除此容器吗？')) {
+                return;
+            }
+            
+            fetch(`/api/docker/containers/${containerId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    addLog(`容器 ${containerId.substring(0, 12)} 删除成功`, 'success');
+                    updateContainerList();
+                } else {
+                    addLog(`容器 ${containerId.substring(0, 12)} 删除失败: ${data.message}`, 'error');
+                }
+            })
+            .catch(error => {
+                addLog(`删除请求失败: ${error.message}`, 'error');
+            });
+        }
+
+        // 更新容器列表
+        function updateContainerList() {
+            if (!isConnected) {
+                document.getElementById('containerList').innerHTML = `
+                    <div style="
+                        grid-column: 1 / -1;
+                        text-align: center;
+                        padding: 40px;
+                        color: #888;
+                        font-size: 14px;
+                        background: rgba(0, 0, 0, 0.8);
+                        border-radius: 8px;
+                    ">
+                        <i class="fas fa-plug" style="margin-right: 8px;"></i>
+                        请先接 Docker
+                    </div>
+                `;
+                return;
+            }
+
+            fetch('/api/docker/listContainers')
+                .then(response => response.json())
+                .then(data => {
+                    const containerList = document.getElementById('containerList');
+                    containerList.innerHTML = '';
+
+                    if (Array.isArray(data)) {
+                        if (data.length > 0) {
+                            data.forEach(container => {
+                                const card = createContainerCard(container);
+                                containerList.appendChild(card);
+                            });
+                        } else {
+                            containerList.innerHTML = `
+                                <div style="
+                                    grid-column: 1 / -1;
+                                    text-align: center;
+                                    padding: 40px;
+                                    color: #888;
+                                    font-size: 14px;
+                                    background: rgba(0, 0, 0, 0.8);
+                                    border-radius: 8px;
+                                ">
+                                    <i class="fas fa-info-circle" style="margin-right: 8px;"></i>
+                                    当前没有容器
+                                </div>
+                            `;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('获取容器列表失败：', error);
+                    containerList.innerHTML = `
+                        <div style="
+                            grid-column: 1 / -1;
+                            text-align: center;
+                            padding: 40px;
+                            color: #ff6b6b;
+                            font-size: 14px;
+                            background: rgba(0, 0, 0, 0.8);
+                            border-radius: 8px;
+                        ">
+                            <i class="fas fa-exclamation-circle" style="margin-right: 8px;"></i>
+                            获取容器列表失败：${error.message}
+                        </div>
+                    `;
+                });
+        }
+
+        // 页面加载完成后自动获取���器列表
+        document.addEventListener('DOMContentLoaded', function() {
+            addLog('Docker 理界面已加载');
+            // 获取初始连接状态
+            updateConnectionStatus();
+            // 获取容器列表
+            updateContainerList();
+
+            // 初始化Dockerfile表单
+            document.querySelector('#dockerfileForm').innerHTML = `
+                <div style="margin-bottom: 15px;">
+                    <label style="color: #888; display: block; margin-bottom: 5px;">Dockerfile内容</label>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <button onclick="document.getElementById('dockerfileUpload').click()" style="
+                            background: rgba(0, 255, 157, 0.1);
+                            border: 1px solid #00ff9d;
+                            color: #00ff9d;
+                            padding: 4px 8px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 12px;
+                            display: flex;
+                            align-items: center;
+                            gap: 4px;
+                        ">
+                            <i class="fas fa-upload"></i> 上传Dockerfile
+                        </button>
+                        <input type="file" id="dockerfileUpload" style="display: none;" accept="*/*">
+                    </div>
+                    <textarea id="dockerfile" style="
+                        width: 100%;
+                        height: 200px;
+                        padding: 8px;
+                        background: #2a2a2a;
+                        border: 1px solid #444;
+                        color: #fff;
+                        border-radius: 4px;
+                        font-family: monospace;
+                        resize: vertical;
+                    " placeholder="输入Dockerfile内容或上传Dockerfile文件"></textarea>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="color: #888; display: block; margin-bottom: 5px;">容器名称</label>
+                    <input type="text" id="newImageName" style="
+                        width: 100%;
+                        padding: 8px;
+                        background: #2a2a2a;
+                        border: 1px solid #444;
+                        color: #fff;
+                        border-radius: 4px;
+                    " placeholder="输入容器名称">
+                </div>
+            `;
+
+            // 添加文件上传处理
+            document.getElementById('dockerfileUpload').addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const textarea = document.getElementById('dockerfile');
+                        textarea.value = e.target.result;
+                        console.log('File loaded:', file.name); // 添加调试日志
+                        addLog(`成功加载文件: ${file.name}`, 'success');
+                    };
+                    reader.onerror = function(e) {
+                        console.error('File read error:', e.target.error); // 添加调试日志
+                        addLog(`文件读取失败: ${e.target.error}`, 'error');
+                    };
+                    reader.readAsText(file);
+                }
+            });
+        });
+
+        // 修改创建容器卡片的函数
+        function createContainerCard(container) {
+            const card = document.createElement('div');
+            card.className = 'container-card';
+            card.style.cssText = `
+                background: rgba(0, 0, 0, 0.6);
+                border: 1px solid rgba(0, 255, 157, 0.2);
+                border-radius: 8px;
+                padding: 15px;
+                width: calc(33.33% - 20px);
+                min-width: 300px;
+                box-sizing: border-box;
+            `;
+
+            const containerName = container.Names[0].substring(1);
+            
+            // 获取端口映射信息
+            const portMappings = container.Ports?.filter(port => port).map(port => {
+                let mapping = '';
+                if (port.IP) {
+                    mapping += `${port.IP}:`;
+                }
+                if (port.PublicPort) {
+                    mapping += `${port.PublicPort}->`;
+                }
+                if (port.PrivatePort) {
+                    mapping += `${port.PrivatePort}/${port.Type || 'tcp'}`;
+                }
+                return mapping;
+            }).filter(mapping => mapping).join('<br>') || '无端口映射';
+
+            // 获取网络信息
+            const networks = container.NetworkSettings?.Networks || {};
+            const networkInfo = Object.entries(networks).map(([networkName, network]) => {
+                let info = `${networkName}: ${network.IPAddress}`;
+                if (network.Gateway) {
+                    info += ` (网关: ${network.Gateway})`;
+                }
+                return info;
+            }).join('<br>') || '无网络信息';
+
+            card.innerHTML = `
+                <div style="margin-bottom: 15px;">
+                    <h3 style="margin: 0 0 8px 0; color: #00ff9d; font-size: 16px;">
+                        ${containerName}
+                        <span style="
+                            font-size: 12px;
+                            padding: 2px 6px;
+                            border-radius: 4px;
+                            background: ${container.State === 'running' ? 'rgba(0, 255, 157, 0.1)' : 'rgba(255, 107, 107, 0.1)'};
+                            color: ${container.State === 'running' ? '#00ff9d' : '#ff6b6b'};
+                            margin-left: 8px;
+                        ">${container.State}</span>
+                    </h3>
+                    
+                    <!-- 基本信息 -->
+                    <div style="color: #888; font-size: 12px; margin-bottom: 8px;">
+                        <div style="margin-bottom: 4px;">
+                            <i class="fas fa-fingerprint" style="width: 16px;"></i> ID: ${container.Id.substring(0, 12)}
+                        </div>
+                        <div style="margin-bottom: 4px;">
+                            <i class="fas fa-box" style="width: 16px;"></i> 镜像: ${container.Image}
+                        </div>
+                        <div style="margin-bottom: 4px;">
+                            <i class="fas fa-clock" style="width: 16px;"></i> 创建时间: ${new Date(container.Created * 1000).toLocaleString()}
+                        </div>
+                    </div>
+
+                    <!-- 网络信息 -->
+                    <div style="
+                        background: rgba(0, 0, 0, 0.3);
+                        border-radius: 4px;
+                        padding: 8px;
+                        margin-bottom: 8px;
+                        font-size: 12px;
+                    ">
+                        <div style="color: #888; margin-bottom: 4px;">
+                            <i class="fas fa-network-wired" style="width: 16px;"></i> 网络:
+                        </div>
+                        <div style="color: #00ff9d; padding-left: 20px;">
+                            ${networkInfo}
+                        </div>
+                    </div>
+
+                    <!-- 端口映�� -->
+                    <div style="
+                        background: rgba(0, 0, 0, 0.3);
+                        border-radius: 4px;
+                        padding: 8px;
+                        margin-bottom: 8px;
+                        font-size: 12px;
+                    ">
+                        <div style="color: #888; margin-bottom: 4px;">
+                            <i class="fas fa-plug" style="width: 16px;"></i> 端口映射:
+                        </div>
+                        <div style="color: #00ff9d; padding-left: 20px;">
+                            ${portMappings}
+                        </div>
+                    </div>
+
+                    <!-- 运行状态 -->
+                    <div style="
+                        background: rgba(0, 0, 0, 0.3);
+                        border-radius: 4px;
+                        padding: 8px;
+                        font-size: 12px;
+                    ">
+                        <div style="color: #888; margin-bottom: 4px;">
+                            <i class="fas fa-info-circle" style="width: 16px;"></i> 状态:
+                        </div>
+                        <div style="color: #00ff9d; padding-left: 20px;">
+                            ${container.Status}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 操作按钮 -->
+                <div style="
+                    display: flex;
+                    gap: 8px;
+                    flex-wrap: wrap;
+                ">
+                    ${container.State === 'running' ? `
+                        <button onclick="stopContainer('${container.Id}')" style="
+                            background: rgba(255, 107, 107, 0.1);
+                            border: 1px solid #ff6b6b;
+                            color: #ff6b6b;
+                            padding: 4px 8px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 12px;
+                            display: flex;
+                            align-items: center;
+                            gap: 4px;
+                        ">
+                            <i class="fas fa-stop"></i> 停止
+                        </button>
+                        <button onclick="restartContainer('${container.Id}')" style="
+                            background: rgba(0, 255, 157, 0.1);
+                            border: 1px solid #00ff9d;
+                            color: #00ff9d;
+                            padding: 4px 8px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 12px;
+                            display: flex;
+                            align-items: center;
+                            gap: 4px;
+                        ">
+                            <i class="fas fa-sync"></i> 重启
+                        </button>
+                    ` : `
+                        <button onclick="startContainer('${container.Id}')" style="
+                            background: rgba(0, 255, 157, 0.1);
+                            border: 1px solid #00ff9d;
+                            color: #00ff9d;
+                            padding: 4px 8px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 12px;
+                            display: flex;
+                            align-items: center;
+                            gap: 4px;
+                        ">
+                            <i class="fas fa-play"></i> 启动
+                        </button>
+                    `}
+                    <button onclick="deleteContainer('${container.Id}')" style="
+                        background: rgba(255, 107, 107, 0.1);
+                        border: 1px solid #ff6b6b;
+                        color: #ff6b6b;
+                        padding: 4px 8px;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-size: 12px;
+                        display: flex;
+                        align-items: center;
+                        gap: 4px;
+                    ">
+                        <i class="fas fa-trash"></i> 删除
+                    </button>
+                    <button onclick="showContainerLogs('${container.Id}')" style="
+                        background: rgba(0, 255, 157, 0.1);
+                        border: 1px solid #00ff9d;
+                        color: #00ff9d;
+                        padding: 4px 8px;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-size: 12px;
+                        display: flex;
+                        align-items: center;
+                        gap: 4px;
+                    ">
+                        <i class="fas fa-file-alt"></i> 日志
+                    </button>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // 添加日志相关函数
+        function addLog(message, type = 'info') {
+            const logs = document.getElementById('globalLogs');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ff6b6b' : 
+                         type === 'success' ? '#00ff9d' : 
+                         '#888';
+            
+            logs.innerHTML += `<div style="color: ${color};">[${timestamp}] ${message}</div>`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        function clearLogs() {
+            document.getElementById('globalLogs').innerHTML = '';
+        }
+
+        function showContainerLogs(containerId) {
+            // 创建日志模态框
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            `;
+
+            const content = document.createElement('div');
+            content.style.cssText = `
+                background: #1a1a1a;
+                border: 1px solid #00ff9d;
+                border-radius: 8px;
+                padding: 20px;
+                width: 80%;
+                max-width: 1000px;
+                max-height: 80vh;
+                display: flex;
+                flex-direction: column;
+            `;
+
+            content.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="color: #00ff9d; margin: 0;">容器日</h3>
+                    <button onclick="this.closest('.log-modal').remove()" style="
+                        background: none;
+                        border: none;
+                        color: #888;
+                        cursor: pointer;
+                        font-size: 20px;
+                    ">×</button>
+                </div>
+                <div id="logs-${containerId}" style="
+                    flex: 1;
+                    background: #000;
+                    border-radius: 4px;
+                    padding: 10px;
+                    font-family: monospace;
+                    font-size: 12px;
+                    color: #00ff9d;
+                    white-space: pre-wrap;
+                    overflow-y: auto;
+                    height: 500px;
+                ">加载中...</div>
+                <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;">
+                    <button onclick="refreshContainerLogs('${containerId}')" style="
+                        background: rgba(0, 255, 157, 0.1);
+                        border: 1px solid #00ff9d;
+                        color: #00ff9d;
+                        padding: 8px 15px;
+                        border-radius: 4px;
+                        cursor: pointer;
+                    ">��新</button>
+                    <button onclick="startStreamingLogs('${containerId}')" style="
+                        background: rgba(0, 255, 157, 0.1);
+                        border: 1px solid #00ff9d;
+                        color: #00ff9d;
+                        padding: 8px 15px;
+                        border-radius: 4px;
+                        cursor: pointer;
+                    ">实时日志</button>
+                </div>
+            `;
+
+            modal.className = 'log-modal';
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+
+            // 加载初始日志
+            refreshContainerLogs(containerId);
+        }
+
+        function refreshContainerLogs(containerId) {
+            const logsElement = document.getElementById(`logs-${containerId}`);
+            logsElement.innerHTML = '正在刷新...';
+
+            fetch(`/api/docker/containers/${containerId}/logs`)
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        logsElement.innerHTML = `<pre style="margin: 0;">${result.data || '暂无日志'}</pre>`;
+                    } else {
+                        logsElement.innerHTML = `<span style="color: #ff6b6b;">获取日志失败: ${result.message}</span>`;
+                    }
+                })
+                .catch(error => {
+                    logsElement.innerHTML = `<span style="color: #ff6b6b;">请求失败: ${error.message}</span>`;
+                });
+        }
+
+        let currentLogStream = null;
+
+        function startStreamingLogs(containerId) {
+            const logsElement = document.getElementById(`logs-${containerId}`);
+            
+            // 如果已经在streaming就停止
+            if (currentLogStream) {
+                currentLogStream.close();
+                currentLogStream = null;
+                return;
+            }
+
+            logsElement.innerHTML = '';
+            currentLogStream = new EventSource(`/api/docker/containers/${containerId}/logs/stream`);
+
+            currentLogStream.addEventListener('log', event => {
+                const logLine = document.createElement('div');
+                logLine.textContent = event.data;
+                logsElement.appendChild(logLine);
+                logsElement.scrollTop = logsElement.scrollHeight;
+            });
+
+            currentLogStream.addEventListener('error', event => {
+                logsElement.innerHTML += `<div style="color: #ff6b6b;">错误: ${event.data}</div>`;
+                currentLogStream.close();
+                currentLogStream = null;
+            });
+        }
+
+        function showCreateContainer(event) {
+            event.stopPropagation();
+            document.getElementById('createContainerModal').style.display = 'block';
+        }
+
+        function hideCreateContainer() {
+            document.getElementById('createContainerModal').style.display = 'none';
+        }
+
+        function createContainer() {
+            const formArea = document.getElementById('formArea');
+            const progressArea = document.getElementById('progressArea');
+            const createButton = document.getElementById('createButton');
+            const buildLogs = document.getElementById('buildLogs');
+            const progressBar = document.getElementById('progressBar');
+            const progressStatus = document.getElementById('progressStatus');
+
+            // 显示进度区域
+            formArea.style.display = 'none';
+            progressArea.style.display = 'block';
+            createButton.disabled = true;
+            buildLogs.innerHTML = '';
+
+            const containerDTO = {
+                dockerfilePath: document.getElementById('dockerfile').value,
+                containerName: document.getElementById('newImageName').value,
+                ports: {}
+            };
+
+            // 先发送POST请求获取buildId
+            fetch('/api/docker/containers/build', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(containerDTO)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                let buildSuccessful = false; // 添加标志来跟踪构建是否成功
+                const eventSource = new EventSource(`/api/docker/containers/build/stream?buildId=${data.buildId}`);
+                
+                eventSource.onopen = () => {
+                    console.log("SSE connection opened");
+                    progressStatus.textContent = '开始构建...';
+                    progressBar.style.width = '10%';
+                    addBuildLog('连接成功，开始构建...');
+                };
+
+                eventSource.addEventListener('log', event => {
+                    console.log("Received log:", event.data);
+                    const logMessage = event.data;
+                    addBuildLog(logMessage);
+                    
+                    // 根据日志内容更新进度条
+                    if (logMessage.includes('Pulling from')) {
+                        progressBar.style.width = '20%';
+                        progressStatus.textContent = '拉取基础镜像...';
+                    } else if (logMessage.includes('Pull complete')) {
+                        progressBar.style.width = '40%';
+                        progressStatus.textContent = '镜像拉取完成...';
+                    } else if (logMessage.includes('Building')) {
+                        progressBar.style.width = '60%';
+                        progressStatus.textContent = '构建镜像中...';
+                    } else if (logMessage.includes('Successfully built')) {
+                        progressBar.style.width = '80%';
+                        progressStatus.textContent = '镜像构建完成...';
+                    } else if (logMessage.includes('Container started')) {
+                        progressBar.style.width = '90%';
+                        progressStatus.textContent = '容器启动中...';
+                    }
+                });
+
+                eventSource.addEventListener('complete', event => {
+                    console.log("Build completed:", event.data);
+                    buildSuccessful = true; // 标记构建成功
+                    progressBar.style.width = '100%';
+                    progressBar.style.background = '#00ff9d';
+                    progressStatus.textContent = '构建成功';
+                    progressStatus.style.color = '#00ff9d';
+                    addBuildLog(event.data, 'success');
+                    
+                    setTimeout(() => {
+                        eventSource.close();
+                        hideCreateContainer();
+                        updateContainerList();
+                    }, 2000);
+                });
+
+                eventSource.addEventListener('error', event => {
+                    // 如果构建已经成功，忽略关闭连接时的错误事件
+                    if (buildSuccessful) {
+                        return;
+                    }
+
+                    // 只处理真正的错误
+                    if (event.target.readyState !== EventSource.CLOSED || !buildSuccessful) {
+                        console.error("SSE error:", event);
+                        progressBar.style.width = '100%';
+                        progressBar.style.background = '#ff6b6b';
+                        progressStatus.textContent = '构建失败';
+                        progressStatus.style.color = '#ff6b6b';
+                        
+                        let errorMessage = '构建失败';
+                        if (event.data) {
+                            try {
+                                errorMessage = event.data;
+                            } catch (e) {
+                                errorMessage = '未知错误';
+                            }
+                        }
+                        
+                        addBuildLog(errorMessage, 'error');
+                        
+                        // 添加重试按钮
+                        const retryButton = document.createElement('button');
+                        retryButton.innerHTML = '重试';
+                        retryButton.style.cssText = `
+                            background: rgba(0, 255, 157, 0.1);
+                            border: 1px solid #00ff9d;
+                            color: #00ff9d;
+                            padding: 8px 20px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            margin-top: 10px;
+                        `;
+                        buildLogs.appendChild(retryButton);
+                        
+                        retryButton.onclick = () => {
+                            resetBuildState();
+                        };
+                    }
+                    eventSource.close();
+                });
+            })
+            .catch(error => {
+                progressBar.style.width = '100%';
+                progressBar.style.background = '#ff6b6b';
+                progressStatus.textContent = '请求失败';
+                progressStatus.style.color = '#ff6b6b';
+                addBuildLog('发送请求失败: ' + error.message, 'error');
+                
+                setTimeout(() => {
+                    resetBuildState();
+                }, 2000);
+            });
+        }
+
+        // 添加重置状态的函数
+        function resetBuildState() {
+            const formArea = document.getElementById('formArea');
+            const progressArea = document.getElementById('progressArea');
+            const createButton = document.getElementById('createButton');
+            const buildLogs = document.getElementById('buildLogs');
+            const progressBar = document.getElementById('progressBar');
+            const progressStatus = document.getElementById('progressStatus');
+
+            // 重置进度条和状态
+            progressBar.style.width = '0%';
+            progressBar.style.background = '#00ff9d';
+            progressStatus.textContent = '';
+            progressStatus.style.color = '#888';
+            
+            // 清空日志
+            buildLogs.innerHTML = '';
+            
+            // 显示表单区域
+            formArea.style.display = 'block';
+            progressArea.style.display = 'none';
+            createButton.disabled = false;
+            
+            // 保持原有的 Dockerfile 内容，方便修改
+            const dockerfile = document.getElementById('dockerfile');
+            const containerName = document.getElementById('newImageName');
+            
+            // 重新启用输入
+            dockerfile.disabled = false;
+            containerName.disabled = false;
+        }
+
+        // 修改隐藏模态框的函数
+        function hideCreateContainer() {
+            const modal = document.getElementById('createContainerModal');
+            modal.style.display = 'none';
+            // 重置状态
+            resetBuildState();
+        }
+
+        // 添加日志的辅助函数
+        function addBuildLog(message, type = 'info') {
+            const buildLogs = document.getElementById('buildLogs');
+            const timestamp = new Date().toLocaleTimeString();
+            let color;
+            
+            switch (type) {
+                case 'error':
+                    color = '#ff6b6b';
+                    break;
+                case 'success':
+                    color = '#00ff9d';
+                    break;
+                case 'warning':
+                    color = '#ffd93d';
+                    break;
+                default:
+                    color = '#888';
+            }
+            
+            const logEntry = document.createElement('div');
+            logEntry.style.color = color;
+            logEntry.style.fontFamily = 'monospace';
+            logEntry.style.fontSize = '12px';
+            logEntry.style.padding = '2px 0';
+            logEntry.innerHTML = `[${timestamp}] ${message}`;
+            
+            buildLogs.appendChild(logEntry);
+            buildLogs.scrollTop = buildLogs.scrollHeight;
+        }
+
+        // 添加端口映射行
+        function addPortMapping() {
+            const portMappings = document.getElementById('portMappings');
+            const newMapping = document.createElement('div');
+            newMapping.className = 'mapping-row';
+            newMapping.style.cssText = `
+                display: flex;
+                gap: 10px;
+                margin-top: 10px;
+            `;
+            newMapping.innerHTML = `
+                <input type="text" class="hostPort" style="
+                    flex: 1;
+                    padding: 8px;
+                    background: #2a2a2a;
+                    border: 1px solid #444;
+                    color: #fff;
+                    border-radius: 4px;
+                " placeholder="主机端口">
+                <span style="color: #888; line-height: 35px;">:</span>
+                <input type="text" class="containerPort" style="
+                    flex: 1;
+                    padding: 8px;
+                    background: #2a2a2a;
+                    border: 1px solid #444;
+                    color: #fff;
+                    border-radius: 4px;
+                " placeholder="容器端口">
+                <button onclick="removePortMapping(this)" style="
+                    background: rgba(255, 107, 107, 0.1);
+                    border: 1px solid #ff6b6b;
+                    color: #ff6b6b;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                ">删除</button>
+            `;
+            portMappings.appendChild(newMapping);
+        }
+
+        // 删除端口映射行
+        function removePortMapping(button) {
+            button.closest('.mapping-row').remove();
+        }
+    </script>
+</div>

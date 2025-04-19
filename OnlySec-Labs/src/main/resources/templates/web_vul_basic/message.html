@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>留言板</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/all.min.css" rel="stylesheet">
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <style>
+        .message-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .message-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+            transition: transform 0.2s;
+        }
+
+        .message-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .message-header {
+            background: #f8f9fa;
+            padding: 10px 20px;
+            border-radius: 8px 8px 0 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .message-content {
+            padding: 15px 20px;
+        }
+
+        .message-footer {
+            padding: 10px 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .search-box {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .btn-custom {
+            border-radius: 20px;
+            padding: 8px 20px;
+        }
+
+        .message-time {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+<!-- 这里是你原有页面的内容 -->
+<div class="container">
+    <!-- 留言板部分 -->
+    <div class="message-section">
+        <h2 class="page-title">
+            <i class="fas fa-comments me-2"></i>留言板
+        </h2>
+
+        <!-- 搜索和发布区域 -->
+        <div class="search-box">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="searchInput" placeholder="搜索留言..." th:value="${keyword}">
+                        <button class="btn btn-outline-primary" onclick="searchMessages()">
+                            <i class="fas fa-search"></i> 搜索
+                        </button>
+                    </div>
+                    <div class="mt-2" id="urlParams"></div>
+                    <div class="mt-2" th:if="${keyword != null && keyword != ''}">
+                        <span class="text-muted">当前搜索的值为: </span>
+                        <span class="text-primary" th:utext="${keyword}"></span>
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-primary btn-custom" data-bs-toggle="modal" data-bs-target="#addMessageModal">
+                        <i class="fas fa-plus"></i> 发布留言
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 留言列表 -->
+        <div id="messageList">
+            <div th:each="message : ${messages}" class="message-card">
+                <div class="message-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </span>
+                        <span class="ms-2">用户 #<span th:text="${message.userId}"></span></span>
+                    </div>
+                    <span class="message-time" th:text="${#temporals.format(message.createTime, 'yyyy-MM-dd HH:mm')}"></span>
+                </div>
+                <div class="message-content">
+                    <p class="mb-0" th:utext="${message.content}"></p>
+                </div>
+                <div class="message-footer text-end">
+                    <button class="btn btn-sm btn-outline-primary me-2" th:onclick="'editMessage(' + ${message.id} + ')'">
+                        <i class="fas fa-edit"></i> 编辑
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" th:onclick="'deleteMessage(' + ${message.id} + ')'">
+                        <i class="fas fa-trash"></i> 删除
+                    </button>
+                </div>
+            </div>
+
+            <!-- 无留言时显示 -->
+            <div th:if="${#lists.isEmpty(messages)}" class="text-center p-5">
+                <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                <h5>暂无留言</h5>
+                <p class="text-muted">来发布第一条留言吧！</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加留言模态框 -->
+<div class="modal fade" id="addMessageModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">发布新留言</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <textarea class="form-control" id="messageContent" rows="4" placeholder="请输入留言内容..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="addMessage()">发布</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加编辑模态框 -->
+<div class="modal fade" id="editMessageModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">编辑留言</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editMessageId">
+                <textarea class="form-control" id="editMessageContent" rows="4"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="updateMessage()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/jquery.min.js"></script>
+<script>
+    function searchMessages() {
+        const keyword = $('#searchInput').val();
+        window.location.href = '/xss/api/messages/search?keyword=' + encodeURIComponent(keyword);
+    }
+
+    function addMessage() {
+        const content = $('#messageContent').val();
+        if (!content.trim()) {
+            alert('请输入留言内容！');
+            return;
+        }
+
+        $.ajax({
+            url: '/xss/api/messages/add',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ content: content }),
+            success: function() {
+                location.reload();
+            },
+            error: function() {
+                alert('发布失败，请重试！');
+            }
+        });
+    }
+
+    function deleteMessage(id) {
+        if (confirm('确定要删除这条留言吗？')) {
+            $.ajax({
+                url: '/xss/api/messages/' + id,
+                type: 'DELETE',
+                success: function() {
+                    location.reload();
+                },
+                error: function() {
+                    alert('删除失败，请重试！');
+                }
+            });
+        }
+    }
+
+    function editMessage(id) {
+        // 先获取留言内容
+        $.get('/xss/api/messages/show/' + id, function(message) {
+            $('#editMessageId').val(id);
+            $('#editMessageContent').val(message.content);
+            // 使用Bootstrap的方式显示模态框
+            var editModal = new bootstrap.Modal(document.getElementById('editMessageModal'));
+            editModal.show();
+        }).fail(function() {
+            alert('获取留言信息失败！');
+        });
+    }
+
+    function updateMessage() {
+        const id = $('#editMessageId').val();
+        const content = $('#editMessageContent').val();
+        
+        if (!content.trim()) {
+            alert('请输入留言内容！');
+            return;
+        }
+
+        $.ajax({
+            url: '/xss/api/messages/update/' + id,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ id: id, content: content }),
+            success: function() {
+                $('#editMessageModal').modal('hide');
+                location.reload();
+            },
+            error: function() {
+                alert('更新失败，请重试！');
+            }
+        });
+    }
+
+    // 回车搜索
+    $('#searchInput').on('keypress', function(e) {
+        if(e.which === 13) {
+            searchMessages();
+        }
+    });
+
+    // DOM XSS 漏洞函数
+    function displayUrlParams() {
+        var urlParams = new URLSearchParams(window.location.search);
+        var name = urlParams.get('name');
+        if (name) {
+            // 直接将URL参数插入DOM，形成DOM型XSS
+            document.getElementById('urlParams').innerHTML = 
+                '<div class="text-muted">欢迎, ' + name + '!</div>';
+        }
+    }
+
+    // 页面加载时执行
+    document.addEventListener('DOMContentLoaded', function() {
+        displayUrlParams();
+    });
+</script>
+</body>
+</html>

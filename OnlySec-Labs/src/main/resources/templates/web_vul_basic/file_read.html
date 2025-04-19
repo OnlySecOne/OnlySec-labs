@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>文件读取测试</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <script src="/js/jquery.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="text-center">文件读取测试</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="fileReadForm" class="mb-4">
+                            <div class="form-group">
+                                <label for="filePath">文件路径:</label>
+                                <input type="text" class="form-control" id="filePath" name="filePath" 
+                                       placeholder="请输入要读取的文件路径">
+                            </div>
+                            <button type="submit" class="btn btn-primary mt-3">读取文件</button>
+                        </form>
+
+                        <div class="mt-4">
+                            <h5>文件内容:</h5>
+                            <pre id="fileContent" class="border p-3 bg-light" style="min-height: 200px; max-height: 500px; overflow-y: auto;">
+                            </pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#fileReadForm').on('submit', function(e) {
+                e.preventDefault();
+                var filePath = $('#filePath').val();
+                
+                $.ajax({
+                    url: '/file/filename',
+                    method: 'GET',
+                    data: { filePath: filePath },
+                    success: function(response) {
+                        $('#fileContent').text(response);
+                    },
+                    error: function(xhr, status, error) {
+                        $('#fileContent').text('请求错误: ' + error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

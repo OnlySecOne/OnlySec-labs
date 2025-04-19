@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>命令执行测试</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <script src="/js/jquery.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="text-center">命令执行测试</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="commandForm" class="mb-4">
+                            <div class="form-group">
+                                <label for="command">命令:</label>
+                                <input type="text" class="form-control" id="command" name="command" 
+                                       placeholder="请输入要执行的系统命令">
+                            </div>
+                            <button type="submit" class="btn btn-primary mt-3">执行命令</button>
+                        </form>
+
+                        <div class="mt-4">
+                            <h5>执行结果:</h5>
+                            <pre id="commandOutput" class="border p-3 bg-light" style="min-height: 200px; max-height: 500px; overflow-y: auto; font-family: monospace;">
+                            </pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#commandForm').on('submit', function(e) {
+                e.preventDefault();
+                var command = $('#command').val();
+                
+                $.ajax({
+                    url: '/command/exec',
+                    method: 'GET',
+                    data: { command: command },
+                    success: function(response) {
+                        $('#commandOutput').text(response);
+                    },
+                    error: function(xhr, status, error) {
+                        $('#commandOutput').text('执行错误: ' + error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

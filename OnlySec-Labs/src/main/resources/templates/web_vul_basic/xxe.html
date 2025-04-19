@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>XXE漏洞测试</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <script src="/js/jquery.min.js"></script>
+</head>
+<body>
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-center">XXE漏洞测试</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <strong>示例XML:</strong><br/>
+                        <pre>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!DOCTYPE test [
+    &lt;!ENTITY xxe SYSTEM "file:///etc/passwd"&gt;
+]&gt;
+&lt;root&gt;&amp;xxe;&lt;/root&gt;
+                            </pre>
+                    </div>
+
+                    <form id="xxeForm" class="mb-4">
+                        <div class="form-group">
+                            <label for="xmlContent">XML内容:</label>
+                            <textarea class="form-control" id="xmlContent" rows="6"
+                                      placeholder="请输入包含XXE的XML内容"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-3">发送请求</button>
+                    </form>
+
+                    <div class="mt-4">
+                        <h5>解析结果:</h5>
+                        <pre id="xxeOutput" class="border p-3 bg-light"
+                             style="min-height: 200px; max-height: 500px; overflow-y: auto; font-family: monospace;">
+                            </pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        $('#xxeForm').on('submit', function(e) {
+            e.preventDefault();
+            var xmlContent = $('#xmlContent').val();
+
+            $.ajax({
+                url: '/xxe/parse',
+                method: 'POST',
+                data: xmlContent,
+                contentType: 'text/plain',  // 设置为纯文本格式
+                success: function(response) {
+                    $('#xxeOutput').text(response);
+                },
+                error: function(xhr, status, error) {
+                    $('#xxeOutput').text('请求错误: ' + error);
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

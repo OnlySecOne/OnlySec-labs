@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>文件上传漏洞测试平台</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: #1a1a2e;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            padding: 40px 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        h1 {
+            grid-column: 1 / -1;
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 40px;
+            color: #fff;
+            text-shadow: 0 0 15px rgba(0,255,255,0.3);
+            letter-spacing: 3px;
+        }
+
+        .upload-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .upload-panel::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                    45deg,
+                    transparent,
+                    rgba(0, 255, 255, 0.05),
+                    transparent
+            );
+            transform: rotate(45deg);
+            animation: shine 20s infinite linear;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            z-index: 1;
+        }
+
+        input[type="file"] {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            z-index: 1;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(45deg, #00fff2, #00b8ff);
+            color: #1a1a2e;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            z-index: 1;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 255, 0.3);
+        }
+
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border-left: 4px solid #00fff2;
+            font-family: 'Consolas', monospace;
+            white-space: pre-wrap;
+            min-height: 50px;
+            width: 100%;
+            z-index: 1;
+        }
+
+        .description {
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 15px;
+            text-align: center;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>文件上传漏洞测试平台</h1>
+
+    <!-- 漏洞1：不安全的文件上传 -->
+    <div class="upload-panel">
+        <h2>漏洞1</h2>
+        <p class="description">不安全的文件上传，未检查文件类型。</p>
+        <form id="form1" enctype="multipart/form-data">
+            <input type="file" name="file" required>
+            <button type="button" onclick="uploadFile('form1', '/upload/vuln1', 'result1')">上传文件</button>
+            <div id="result1" class="result">等待上传...</div>
+        </form>
+    </div>
+
+    <!-- 漏洞2：仅检查文件扩展名 -->
+    <div class="upload-panel">
+        <h2>漏洞2</h2>
+        <p class="description">仅检查文件扩展名。</p>
+        <form id="form2" enctype="multipart/form-data">
+            <input type="file" name="file" required>
+            <button type="button" onclick="uploadFile('form2', '/upload/vuln2', 'result2')">上传文件</button>
+            <div id="result2" class="result">等待上传...</div>
+        </form>
+    </div>
+
+    <!-- 漏洞3：仅检查Content-Type -->
+    <div class="upload-panel">
+        <h2>漏洞3</h2>
+        <p class="description">仅检查Content-Type。</p>
+        <form id="form3" enctype="multipart/form-data">
+            <input type="file" name="file" required>
+            <button type="button" onclick="uploadFile('form3', '/upload/vuln3', 'result3')">上传文件</button>
+            <div id="result3" class="result">等待上传...</div>
+        </form>
+    </div>
+
+    <!-- 漏洞4：删除不合法后缀 -->
+    <div class="upload-panel">
+        <h2>漏洞4</h2>
+        <p class="description">删除不合法后缀（如jsjspp变为jsp）。</p>
+        <form id="form4" enctype="multipart/form-data">
+            <input type="file" name="file" required>
+            <button type="button" onclick="uploadFile('form4', '/upload/vuln4', 'result4')">上传文件</button>
+            <div id="result4" class="result">等待上传...</div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function uploadFile(formId, endpoint, resultId) {
+        const form = document.getElementById(formId);
+        const formData = new FormData(form);
+        const resultDiv = document.getElementById(resultId);
+
+        fetch(endpoint, {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.text())
+            .then(data => {
+                resultDiv.textContent = data;
+            })
+            .catch(error => {
+                resultDiv.textContent = `错误: ${error.message}`;
+            });
+    }
+</script>
+</body>
+</html>

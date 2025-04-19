@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/head :: head">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="logo">
+            <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 7V17L12 22L22 17V7L12 2Z" stroke="#00ff9d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 6L7 9V15L12 18L17 15V9L12 6Z" stroke="#00ff9d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 10L10 11V13L12 14L14 13V11L12 10Z" fill="#00ff9d"/>
+                <path d="M12 2V6M2 7L7 9M22 7L17 9M12 18V22M2 17L7 15M22 17L17 15" stroke="#00ff9d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="logo-text">无相</span>
+        </div>
+        <div class="user-info">
+            <div class="system-time">
+                <i class="fas fa-clock"></i>
+                <span id="current-time"></span>
+            </div>
+            <span>欢迎回来, Admin</span>
+            <button class="logout-btn" onclick="location.href='/logout'">登出</button>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 1200px; margin: 2rem auto 2rem; padding: 0 20px;">
+        <div class="welcome-section">
+            <canvas class="matrix-bg" id="matrixCanvas"></canvas>
+            <h1 id="typewriter-title"></h1>
+            <p id="typewriter-text"></p>
+        </div>
+
+        <!-- 内容区域分开样式 -->
+        <div class="content">
+            <!-- Web漏洞模块 -->
+            <div class="web-vuln-section">
+                <div th:replace="fragments/modules/web-vuln :: web-vuln"></div>
+            </div>
+            
+            <!-- 加密解密模块 -->
+            <div class="web-encryption-section">
+                <div th:replace="fragments/modules/web-Encryption :: web-Encryption"></div>
+            </div>
+
+            <!-- Docker模块 -->
+            <div class="docker-section">
+                <div th:replace="fragments/modules/docker :: docker"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 脚本部分 -->
+    <script th:src="@{/js/typewriter.js}"></script>
+    <script>
+        // 添加检查代码
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded');
+            if (typeof runTypewriter === 'undefined') {
+                console.error('typewriter.js not loaded properly');
+            } else {
+                console.log('typewriter.js loaded');
+                runTypewriter();
+            }
+        });
+    </script>
+    
+    <!-- 修改折叠功能的JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 处理所有模块的折叠功能
+            const moduleHeaders = document.querySelectorAll('.module-header');
+            
+            moduleHeaders.forEach(header => {
+                // 修改这里，让它能够找到 docker-container
+                const content = header.nextElementSibling;
+                const icon = header.querySelector('.toggle-icon');
+                
+                // 设置初始状态
+                if (content) {
+                    content.style.display = content.classList.contains('vulnerability-grid') ? 'grid' : 'flex';
+                }
+                
+                // 添加点击事件
+                header.addEventListener('click', function() {
+                    if (content) {
+                        const isGrid = content.classList.contains('vulnerability-grid');
+                        if (content.style.display === 'none') {
+                            content.style.display = isGrid ? 'grid' : 'flex';
+                            if (icon) icon.style.transform = 'rotate(0)';  // 展开时箭头向下
+                        } else {
+                            content.style.display = 'none';
+                            if (icon) icon.style.transform = 'rotate(-90deg)';  // 折叠时箭头向右
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+
+    <!-- 更新样式 -->
+    <style>
+    /* 内容区域基础样式 */
+    .content {
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px; /* 进一步减小模块间距 */
+    }
+
+    /* 确保模块间距一致且紧凑 */
+    .web-vuln-section,
+    .docker-section {
+        width: 100%;
+        margin: 2px 0; /* 进一步减小外边距 */
+    }
+
+    /* 模块头部样式调整 */
+    .module-header {
+        padding: 0.4rem 0.8rem; /* 减小padding */
+        margin-bottom: 0.3rem; /* 减小底部间距 */
+    }
+
+    /* 调整welcome-section的边距 */
+    .welcome-section {
+        margin: 5px auto !important; /* 使用!important确保覆盖其他样式 */
+    }
+
+    /* 确保container的边距也很小 */
+    .container {
+        margin: 1rem auto !important;
+    }
+
+    /* 容器项样式调整 */
+    .docker-item h4 {
+        font-size: 13px; /* 减小容器标题字体 */
+    }
+
+    .docker-status {
+        font-size: 11px; /* 减小状态文字大小 */
+    }
+
+    /* 按钮样式调整 */
+    .control-btn {
+        padding: 4px 8px; /* 减小按钮内边距 */
+        font-size: 12px; /* 减小按钮文字大小 */
+    }
+
+    /* 整信息文本大小 */
+    .info-item {
+        font-size: 12px; /* 减小信息文本大小 */
+    }
+
+    /* 调整分组标题 */
+    .vuln-group-header span {
+        font-size: 14px; /* 减小分组标题大小 */
+    }
+
+    /* 调整容器详情文本 */
+    .container-detail h3 {
+        font-size: 15px; /* 减小详情标题大小 */
+    }
+
+    /* 添加导航栏样式 */
+    .navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1000;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(10px);
+    }
+
+    /* 调整容器样式，添加上边距避免被导航栏遮挡 */
+    .container {
+        margin-top: 80px !important; /* 根据航栏高度调整 */
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 20px;
+    }
+
+    /* 确保welcome-section不被遮挡 */
+    .welcome-section {
+        position: relative;
+        height: 250px;
+        width: 100%;
+        padding: 20px;
+        overflow: hidden;
+        background: #000;
+        margin: 15px auto;
+        border-radius: 10px;
+        box-sizing: border-box;
+        z-index: 1; /* 确保低于导航栏 */
+    }
+    </style>
+
+    <!-- 在body结束前加载模块脚本 -->
+    <th:block th:replace="fragments/modules/docker :: docker-scripts"></th:block>
+</body>
+</html>
+
+<style>
+.welcome-section {
+    position: relative;
+    height: 250px;
+    width: 100%;
+    padding: 20px;
+    overflow: hidden;
+    background: #000;
+    margin: 15px auto;
+    border-radius: 10px;
+    box-sizing: border-box;
+}
+
+.matrix-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+#typewriter-title, #typewriter-text {
+    position: relative;
+    z-index: 2;
+    color: #fff;
+    text-shadow: 0 0 5px #0F0;
+}
+
+#typewriter-title {
+    font-size: 18px;
+    margin: 12px 0;
+    text-align: center;
+    height: 25px;
+}
+
+#typewriter-text {
+    max-width: 100%;
+    height: 150px;
+    width: 100%;
+    margin: 0 auto;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    font-size: 12px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    display: block;
+    resize: none;
+    position: relative;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+#typewriter-text::-webkit-scrollbar {
+    display: none;
+}
+
+/* 更新content样式确保对齐 */
+.content {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* 调整模块间距 */
+.content > div:not(:first-child) {
+    margin-top: 30px;
+}
+
+/* 确保docker容器样式与web漏洞模块对齐 */
+.docker-container {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid rgba(0, 255, 157, 0.1);
+}
+
+/* 添加折叠相关的样式 */
+.module-header {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.toggle-icon {
+    margin-right: 10px;
+    transition: transform 0.3s ease;
+}
+
+.vulnerability-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+.module-title {
+    color: #00ff9d;
+    margin: 0;
+}
+
+/* 添加脚样式 */
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    padding: 15px 0;
+    z-index: 1000;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 20px;
+    position: relative;
+}
+
+.copyright {
+    color: #00ff9d;
+    font-size: 14px;
+    text-align: center;
+}
+
+.real-time {
+    color: #00ff9d;
+    font-size: 14px;
+    font-family: monospace;
+    position: absolute;
+    right: 20px;
+}
+
+/* 确保内容不会被固定页脚遮挡 */
+body {
+    padding-bottom: 0;
+}
+</style>

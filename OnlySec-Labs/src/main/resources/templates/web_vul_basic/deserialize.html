@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>反序列化漏洞测试</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <script src="/js/jquery.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="text-center">反序列化漏洞测试</h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- 序列化示例说明 -->
+                        <div class="alert alert-info mb-4">
+                            <h5>序列化对象示例 (User类):</h5>
+                            <pre class="mb-0">
+public class User implements Serializable {
+    private String id;
+    private String username;
+    private String name;
+    private String email;
+    private String phone;
+    private Integer status;
+    private String CreateTime;
+}
+
+// 序列化后的文件应包含以上类的对象数据
+                            </pre>
+                        </div>
+
+                        <!-- 文件上传表单 -->
+                        <form id="deserializeForm" class="mb-4">
+                            <div class="form-group">
+                                <label for="serialFile">序列化文件:</label>
+                                <input type="file" class="form-control" id="serialFile" name="file">
+                                <small class="form-text text-muted">请上传包含User对象的Java序列化数据文件(.ser)</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary mt-3">上传并反序列化</button>
+                        </form>
+
+                        <!-- 反序列化结果显示 -->
+                        <div class="mt-4">
+                            <h5>反序列化结果:</h5>
+                            <pre id="deserializeOutput" class="border p-3 bg-light" 
+                                style="min-height: 200px; max-height: 500px; overflow-y: auto; font-family: monospace;">
+                            </pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // 处理文件上传
+            $('#deserializeForm').on('submit', function(e) {
+                e.preventDefault();
+                var formData = new FormData();
+                var fileInput = $('#serialFile')[0];
+                
+                if(fileInput.files.length > 0) {
+                    formData.append('file', fileInput.files[0]);
+                    
+                    $.ajax({
+                        url: '/deserialize/upload',
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function(response) {
+                            $('#deserializeOutput').text(JSON.stringify(response, null, 2));
+                        },
+                        error: function(xhr, status, error) {
+                            $('#deserializeOutput').text('反序列化错误: ' + error);
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

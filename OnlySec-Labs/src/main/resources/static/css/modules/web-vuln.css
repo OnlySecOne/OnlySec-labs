@@ -1,0 +1,126 @@
+/* Web漏洞模块特定的样式 */
+.vulnerability-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem 0;
+}
+
+.vuln-card-group {
+    position: relative;
+}
+
+.vuln-card {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(42, 42, 42, 0.6);
+    border-radius: 8px;
+    padding: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.vuln-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, transparent, rgba(0, 255, 157, 0.03));
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.vuln-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    border-color: #00ff9d;
+    box-shadow: 0 5px 20px rgba(0, 255, 157, 0.2);
+}
+
+.vuln-card:hover::before {
+    opacity: 1;
+}
+
+.card-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(0, 255, 157, 0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.card-icon i {
+    font-size: 1.5rem;
+    color: #00ff9d;
+}
+
+.card-content {
+    flex-grow: 1;
+}
+
+.card-content h4 {
+    color: #00ff9d;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.card-content p {
+    color: #888;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    margin-bottom: 1rem;
+}
+
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.difficulty-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0.8rem;
+    background: rgba(0, 255, 157, 0.1);
+    border-radius: 12px;
+    font-size: 0.8rem;
+    color: #00ff9d;
+}
+
+.status-tag {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: #00ff9d;
+    font-size: 0.8rem;
+}
+
+/* 动画效果 */
+.vuln-card:active {
+    transform: scale(0.98);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .vulnerability-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .vuln-card {
+        padding: 1rem;
+    }
+    
+    .card-icon {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .card-icon i {
+        font-size: 1.2rem;
+    }
+} 

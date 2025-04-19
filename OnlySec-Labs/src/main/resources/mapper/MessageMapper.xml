@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.only.www.onlyseclabs.mapper.MessageMapper">
+    
+    <!-- 基础结果映射 -->
+    <resultMap id="MessageMap" type="com.only.www.onlyseclabs.entity.Message">
+        <id property="id" column="id"/>
+        <result property="content" column="content"/>
+        <result property="createTime" column="createTime"/>
+        <result property="userId" column="userId"/>
+    </resultMap>
+
+    <!-- 添加新留言 -->
+    <insert id="insertMessage" parameterType="com.only.www.onlyseclabs.entity.Message" 
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO messages (content, createTime, userId) 
+        VALUES (#{content}, #{createTime}, #{userId})
+    </insert>
+
+    <!-- 删除留言 -->
+    <delete id="deleteMessage">
+        DELETE FROM messages WHERE id = #{id}
+    </delete>
+
+    <!-- 获取所有留言列表 -->
+    <select id="getAllMessages" resultMap="MessageMap">
+        SELECT * FROM messages ORDER BY createTime DESC
+    </select>
+
+    <!-- 根据用户ID获取留言 -->
+    <select id="getMessagesByUserId" resultMap="MessageMap">
+        SELECT * FROM messages WHERE userId = #{userId} ORDER BY createTime DESC
+    </select>
+
+    <!-- 根据ID获取单条留言  -->
+    <select id="getMessageById" resultMap="MessageMap">
+        SELECT * FROM messages WHERE id = #{id}
+    </select>
+
+    <!-- 更新留言内容 -->
+    <update id="updateMessage" parameterType="com.only.www.onlyseclabs.entity.Message">
+        UPDATE messages 
+        SET content = #{content}, 
+            createTime = NOW() 
+        WHERE id = #{id}
+    </update>
+
+    <!-- 搜索留言 - 允许SQL注入 -->
+    <select id="searchMessages" resultMap="MessageMap">
+        SELECT * FROM messages 
+        WHERE content LIKE '%${keyword}%' 
+        ORDER BY createTime DESC
+    </select>
+</mapper> 

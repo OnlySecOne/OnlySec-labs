@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>验证码复用漏洞测试平台</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: #1a1a2e;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 40px;
+            color: #fff;
+            text-shadow: 0 0 15px rgba(0,255,255,0.3);
+            letter-spacing: 3px;
+        }
+
+        .login-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .login-panel::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent,
+                rgba(0, 255, 255, 0.05),
+                transparent
+            );
+            transform: rotate(45deg);
+            animation: shine 20s infinite linear;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: rgba(0, 255, 255, 0.5);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+        }
+
+        .captcha-group {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .captcha-input {
+            flex: 1;
+        }
+
+        .captcha-image {
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .captcha-image:hover {
+            transform: scale(1.05);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(45deg, #00fff2, #00b8ff);
+            color: #1a1a2e;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 255, 0.3);
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 4px solid #00fff2;
+            display: none;
+        }
+
+        .result.success {
+            border-left-color: #00ff00;
+        }
+
+        .result.error {
+            border-left-color: #ff0000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>验证码复用漏洞测试平台</h1>
+        <div class="login-panel">
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="captcha">验证码</label>
+                    <div class="captcha-group">
+                        <input type="text" id="captcha" name="captcha" class="captcha-input" required>
+                        <img id="captchaImage" class="captcha-image" th:src="@{/captcha/generate}" alt="验证码" 
+                             onclick="refreshCaptcha()">
+                    </div>
+                </div>
+                <button type="button" onclick="login()">登录</button>
+            </form>
+            <div id="result" class="result"></div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+    /*<![CDATA[*/
+    function refreshCaptcha() {
+        const img = document.getElementById('captchaImage');
+        img.src = [[@{/captcha/generate}]] + '?t=' + new Date().getTime();
+    }
+
+    function login() {
+        const form = document.getElementById('loginForm');
+        const result = document.getElementById('result');
+        const formData = new FormData(form);
+
+        fetch([[@{/captcha/login}]], {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            result.style.display = 'block';
+            result.textContent = data.message;
+            result.className = 'result ' + (data.success ? 'success' : 'error');
+            
+            if (!data.success) {
+                refreshCaptcha();
+            }
+        })
+        .catch(error => {
+            result.style.display = 'block';
+            result.textContent = '发生错误：' + error.message;
+            result.className = 'result error';
+        });
+    }
+    /*]]>*/
+    </script>
+</body>
+</html> 

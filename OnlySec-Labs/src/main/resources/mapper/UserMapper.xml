@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.only.www.onlyseclabs.mapper.UserMapper">
+    
+    <!-- 查询所有用户 -->
+    <select id="findAllUsers" resultType="com.only.www.onlyseclabs.entity.User">
+        SELECT * FROM user
+    </select>
+
+    <!-- 根据用户名查询 - 直接拼接字符串 -->
+    <select id="findByUsername" resultType="com.only.www.onlyseclabs.entity.User">
+        SELECT * FROM user WHERE username = '${_parameter}'
+    </select>
+
+    <!-- 插入用户 - 直接拼接字符串 -->
+    <insert id="insertUser">
+        ${@java.lang.String@format("INSERT INTO user (username, name, email, phone, status, CreateTime) VALUES ('%s', '%s', '%s', '%s', %d, '%s')", 
+        username, name, email, phone, status, createTime)}
+    </insert>
+
+    <!-- 更新用户 - 直接拼接字符串 -->
+    <update id="updateUser">
+        ${@java.lang.String@format("UPDATE user SET username='%s', name='%s', email='%s', phone='%s', status=%d, CreateTime='%s' WHERE id='%s'",
+        username, name, email, phone, status, createTime, id)}
+    </update>
+
+    <!-- 删除用户 - 直接拼接字符串 -->
+    <delete id="deleteUser">
+        DELETE FROM user WHERE id = ${_parameter}
+    </delete>
+
+    <!-- 根据ID查询用户 - 直接拼接字符串 -->
+    <select id="findById" resultType="com.only.www.onlyseclabs.entity.User">
+        SELECT * FROM user WHERE id = '${_parameter}'
+    </select>
+
+    <!-- 搜索用户 - 直接拼接用户输入，不做任何转义 -->
+    <select id="searchUsers" resultType="com.only.www.onlyseclabs.entity.User">
+        SELECT * FROM user 
+        WHERE username = '${keyword}'
+        OR name = '${keyword}'
+        OR email = '${keyword}'
+        OR phone = '${keyword}'
+    </select>
+
+</mapper> 

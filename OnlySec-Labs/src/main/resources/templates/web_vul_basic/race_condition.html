@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>并发转账漏洞测试</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <script src="/js/jquery.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="text-center">并发转账漏洞测试</h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- 说明部分 -->
+                        <div class="alert alert-info mb-4">
+                            <h5>测试说明:</h5>
+                            <pre class="mb-0">
+1. 初始状态: 账户A和账户B各有1000元
+2. 每次转账: 从账户A向账户B转账100元
+3. 点击"并发测试"会同时发起多笔转账
+4. 观察不安全实现可能导致的金额错误
+5. 正常情况下两个账户余额之和应该始终为2000元
+                            </pre>
+                        </div>
+
+                        <!-- 控制按钮 -->
+                        <div class="mb-4">
+                            <button id="resetBtn" class="btn btn-secondary">重置账户</button>
+                            <button id="checkBtn" class="btn btn-info ml-2">查看余额</button>
+                        </div>
+
+                        <!-- 测试区域 -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header bg-danger text-white">不安全转账实现</div>
+                                    <div class="card-body">
+                                        <button id="unsafeTestBtn" class="btn btn-danger">并发转账测试</button>
+                                        <pre id="unsafeOutput" class="mt-3 border p-2" style="min-height: 150px;">
+                                        </pre>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header bg-success text-white">安全转账实现</div>
+                                    <div class="card-body">
+                                        <button id="safeTestBtn" class="btn btn-success">并发转账测试</button>
+                                        <pre id="safeOutput" class="mt-3 border p-2" style="min-height: 150px;">
+                                        </pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // 重置账户
+            $('#resetBtn').click(function() {
+                $.post('/race/reset', function(response) {
+                    alert(response);
+                });
+            });
+
+            // 查看余额
+            $('#checkBtn').click(function() {
+                $.post('/race/check', function(response) {
+                    alert(response);
+                });
+            });
+
+            // 不安全并发测试
+            $('#unsafeTestBtn').click(function() {
+                $('#unsafeOutput').empty();
+                // 同时发送5个转账请求
+                for(let i = 0; i < 5; i++) {
+                    $.post('/race/unsafe', {amount: 100}, function(response) {
+                        $('#unsafeOutput').append(response + '\n');
+                    });
+                }
+            });
+
+            // 安全并发测试
+            $('#safeTestBtn').click(function() {
+                $('#safeOutput').empty();
+                // 同时发送5个转账请求
+                for(let i = 0; i < 5; i++) {
+                    $.post('/race/safe', {amount: 100}, function(response) {
+                        $('#safeOutput').append(response + '\n');
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

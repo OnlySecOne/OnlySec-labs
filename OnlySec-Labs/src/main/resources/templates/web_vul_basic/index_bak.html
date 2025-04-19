@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OnlySec-Labs - 实验室</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: #1a1a1a;
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 255, 157, 0.1);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 255, 157, 0.1);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00ff9d, #00a2ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            position: relative;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% {
+                filter: drop-shadow(0 0 5px rgba(0, 255, 157, 0.5));
+            }
+            50% {
+                filter: drop-shadow(0 0 15px rgba(0, 255, 157, 0.8));
+            }
+        }
+
+        .logo-text {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info span {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .logout-btn {
+            background: linear-gradient(45deg, #ff4747, #ff7070);
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 4px;
+            color: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 10px rgba(255, 71, 71, 0.3);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 4rem auto 2rem;
+            padding: 0 1.5rem;
+            width: 100%;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .welcome-section {
+            background: linear-gradient(
+                135deg, 
+                rgba(0, 0, 0, 0.8) 0%,
+                rgba(0, 255, 157, 0.05) 100%
+            );
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(0, 255, 157, 0.1);
+            position: relative;
+            overflow: hidden;
+            min-height: 160px;
+            box-shadow: 0 0 20px rgba(0, 255, 157, 0.1);
+        }
+
+        /* Matrix代码雨效果 */
+        .matrix-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1;
+            opacity: 0.4;
+        }
+
+        .welcome-section h1 {
+            color: #00ff9d;
+            margin-bottom: 1rem;
+            font-size: 1.6rem;
+            position: relative;
+            z-index: 3;
+            text-shadow: 0 0 15px rgba(0, 255, 157, 0.7);
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        .welcome-section p {
+            font-size: 0.9rem;
+            position: relative;
+            z-index: 3;
+            color: #fff;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+            line-height: 1.4;
+            letter-spacing: 0.5px;
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .vulnerability-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            padding: 1rem 0;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .vuln-card-group {
+            position: relative;
+            margin-bottom: 1rem;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .vuln-card {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(42, 42, 42, 0.6);
+            border-radius: 8px;
+            padding: 1.2rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .vuln-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 157, 0.03));
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .vuln-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: #00ff9d;
+            box-shadow: 0 5px 20px rgba(0, 255, 157, 0.2),
+                        0 0 0 1px rgba(0, 255, 157, 0.1);
+        }
+
+        .vuln-card:hover::before {
+            opacity: 1;
+        }
+
+        .vuln-card h4 {
+            color: #00ff9d;
+            font-size: 1rem;
+            margin-bottom: 0.8rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .vuln-card p {
+            color: #888;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .difficulty-label {
+            display: inline-block;
+            padding: 0.3rem 0.6rem;
+            background: linear-gradient(45deg, 
+                rgba(0, 255, 157, 0.1), 
+                rgba(0, 162, 255, 0.1)
+            );
+            border: 1px solid rgba(0, 255, 157, 0.2);
+            backdrop-filter: blur(5px);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: #00ff9d;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        .vuln-card:hover .difficulty-label {
+            background: rgba(0, 255, 157, 0.15);
+            border-color: rgba(0, 255, 157, 0.3);
+        }
+
+        /* 添加卡片点击效果 */
+        .vuln-card:active {
+            transform: scale(0.98);
+        }
+
+        .main-card {
+            position: relative;
+            cursor: pointer;
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        .main-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 255, 157, 0.1);
+            border-color: #00ff9d;
+        }
+
+        .main-card .expand-icon {
+            position: absolute;
+            right: 1.2rem;
+            bottom: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+
+        .main-card.expanded .expand-icon {
+            transform: translateY(-50%) rotate(180deg);
+        }
+
+        .sub-cards {
+            display: none;
+            margin-top: 0.5rem;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            position: absolute;
+            width: 100%;
+            z-index: 10;
+        }
+
+        .sub-cards.show {
+            opacity: 1;
+            transform: translateY(0);
+            display: block;
+        }
+
+        .sub-card {
+            background: rgba(0, 0, 0, 0.3);
+            margin-bottom: 0.5rem;
+            padding: 1.2rem;
+            transform: none;
+            cursor: pointer;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .sub-card:hover {
+            transform: translateX(10px);
+        }
+
+        .sub-card h4 {
+            color: #00a2ff;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .difficulty {
+            display: flex;
+            gap: 0.3rem;
+            margin-top: 1rem;
+        }
+
+        .difficulty i {
+            color: #00a2ff;
+        }
+
+        .status-bar {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 1rem 2rem;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-top: 1px solid #2a2a2a;
+        }
+
+        .copyright, .system-time {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        .copyright i, .system-time i {
+            color: #00ff9d;
+        }
+
+        #particleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: #1a1a1a;
+            opacity: 1;
+            pointer-events: none;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        #typewriter-title::after,
+        #typewriter-text::after {
+            content: '|';
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .typing-done::after {
+            display: none;
+        }
+
+        /* 添加模块分类样式 */
+        .module-title {
+            color: #00ff9d;
+            font-size: 1.4rem;
+            margin: 0;
+            padding-left: 0.8rem;
+            border-left: 3px solid #00ff9d;
+        }
+
+        .module-description {
+            color: #666;
+            margin: 0.5rem 1rem;
+            padding-left: 0.8rem;
+            font-size: 0.85rem;
+        }
+
+        /* 调整卡片网格布局 */
+        .vuln-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            padding: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        /* 添加模块折叠相关样式 */
+        .module-header {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 0.8rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .module-header:hover {
+            background: rgba(0, 255, 157, 0.1);
+        }
+
+        .module-title {
+            color: #00ff9d;
+            font-size: 1.4rem;
+            margin: 0;
+            padding-left: 0.8rem;
+            border-left: 3px solid #00ff9d;
+            flex-grow: 1;
+        }
+
+        .toggle-icon {
+            color: #00ff9d;
+            font-size: 1.5rem;
+            margin-right: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .module-content {
+            max-height: 2000px;
+            opacity: 1;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .module-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+            padding: 0;
+        }
+
+        .module-description {
+            color: #666;
+            margin: 1rem;
+            padding-left: 1rem;
+        }
+
+        /* 优化模块标题hover效果 */
+        .module-header:hover .module-title {
+            color: #00ffa2;
+            text-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
+        }
+
+        .module-header:hover .toggle-icon {
+            transform: scale(1.1) rotate(180deg);
+            color: #00ff9d;
+        }
+
+        .toggle-icon {
+            transition: all 0.3s ease;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .system-time {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .system-time i {
+            color: #00ff9d;
+        }
+
+        /* 优化滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 157, 0.3);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 255, 157, 0.5);
+        }
+
+        .docker-manager {
+            padding: 1rem;
+        }
+
+        .docker-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .docker-select {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #2a2a2a;
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            min-width: 150px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .docker-select:hover {
+            border-color: #00ff9d;
+        }
+
+        .docker-btn {
+            padding: 0.5rem 1.2rem;
+            border-radius: 4px;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .docker-btn.create {
+            background: linear-gradient(45deg, #00ff9d, #00a2ff);
+        }
+
+        .docker-btn.stop {
+            background: linear-gradient(45deg, #ffa500, #ff6b00);
+        }
+
+        .docker-btn.delete {
+            background: linear-gradient(45deg, #ff4747, #ff7070);
+        }
+
+        .docker-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 10px rgba(0, 255, 157, 0.3);
+        }
+
+        .docker-containers {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .container-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .container-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .container-info span {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .container-info strong {
+            color: #00ff9d;
+        }
+
+        .container-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .status-badge {
+            padding: 0.3rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .status-badge.running {
+            background: rgba(0, 255, 157, 0.1);
+            color: #00ff9d;
+        }
+
+        .status-badge.stopped {
+            background: rgba(255, 71, 71, 0.1);
+            color: #ff4747;
+        }
+
+        .env-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+        }
+
+        .env-type-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .env-type-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 157, 0.03));
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .env-type-card:hover {
+            transform: translateY(-5px);
+            border-color: #00ff9d;
+            box-shadow: 0 5px 20px rgba(0, 255, 157, 0.2);
+        }
+
+        .env-type-card:hover::before {
+            opacity: 1;
+        }
+
+        .env-type-card.selected {
+            border-color: #00ff9d;
+            background: rgba(0, 255, 157, 0.1);
+        }
+
+        .env-type-card i {
+            font-size: 2rem;
+            color: #00ff9d;
+            margin-bottom: 1rem;
+        }
+
+        .env-type-card h4 {
+            color: #fff;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .env-type-card p {
+            color: #888;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .env-controls {
+            display: flex;
+            gap: 1rem;
+            padding: 0 1rem;
+            margin-bottom: 1.5rem;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        /* 加载遮罩层 */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-content {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 2rem;
+            border-radius: 10px;
+            border: 1px solid #2a2a2a;
+            text-align: center;
+            min-width: 300px;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #2a2a2a;
+            border-top: 3px solid #00ff9d;
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #fff;
+            margin-bottom: 1rem;
+        }
+
+        .loading-status {
+            color: #888;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #2a2a2a;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #00ff9d, #00a2ff);
+            transition: width 0.3s ease;
+        }
+
+        /* 优化按钮样式 */
+        .container-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .docker-btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 4px;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .docker-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.2),
+                transparent
+            );
+            transition: 0.5s;
+        }
+
+        .docker-btn:hover::before {
+            left: 100%;
+        }
+
+        .docker-btn.stop {
+            background: linear-gradient(45deg, #ffa500, #ff6b00);
+        }
+
+        .docker-btn.delete {
+            background: linear-gradient(45deg, #ff4747, #ff7070);
+        }
+
+        .docker-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* 添加确认对话框样式 */
+        .confirm-dialog {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            padding: 2rem;
+            border-radius: 10px;
+            border: 1px solid #2a2a2a;
+            z-index: 1001;
+            display: none;
+            text-align: center;
+            min-width: 300px;
+        }
+
+        .confirm-dialog h3 {
+            color: #fff;
+            margin-bottom: 1rem;
+        }
+
+        .confirm-dialog p {
+            color: #888;
+            margin-bottom: 1.5rem;
+        }
+
+        .confirm-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 7V17L12 22L22 17V7L12 2Z" stroke="#00ff9d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 6L7 9V15L12 18L17 15V9L12 6Z" stroke="#00ff9d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M12 10L10 11V13L12 14L14 13V11L12 10Z" fill="#00ff9d"/>
+                <path d="M12 2V6M2 7L7 9M22 7L17 9M12 18V22M2 17L7 15M22 17L17 15" stroke="#00ff9d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="logo-text">OnlySec-Labs</span>
+        </div>
+        <div class="user-info">
+            <div class="system-time">
+                <i class="fas fa-clock"></i>
+                <span id="current-time"></span>
+            </div>
+            <span>欢迎回来, Admin</span>
+            <button class="logout-btn" onclick="location.href='/logout'">登出</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="welcome-section">
+            <canvas class="matrix-bg" id="matrixCanvas"></canvas>
+            <h1 id="typewriter-title"></h1>
+            <p id="typewriter-text"></p>
+        </div>
+
+        <div class="content">
+            <!-- Web漏洞模块 -->
+            <div class="module">
+                <div class="module-header" onclick="toggleModule(this)">
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                    <h2 class="module-title">Web漏洞实验</h2>
+                </div>
+                <div class="module-content collapsed">
+                    <p class="module-description">常见Web安全漏洞的演示和利用</p>
+                    <div class="vuln-cards">
+                        <div class="vuln-card" onclick="location.href='/csrf'">
+                            <h4>CSRF漏洞</h4>
+                            <p>跨站请求伪造漏洞演示</p>
+                            <div class="difficulty-label">难度: 中等</div>
+                        </div>
+                        <div class="vuln-card" onclick="location.href='/xss'">
+                            <h4>XSS漏洞</h4>
+                            <p>跨站脚本攻击漏洞演示</p>
+                            <div class="difficulty-label">难度: 简单</div>
+                        </div>
+                        <div class="vuln-card" onclick="location.href='/sqli'">
+                            <h4>SQL注入</h4>
+                            <p>SQL注入漏洞演示</p>
+                            <div class="difficulty-label">难度: 困难</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CTF模块 -->
+            <div class="module">
+                <div class="module-header" onclick="toggleModule(this)">
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                    <h2 class="module-title">CTF挑战</h2>
+                </div>
+                <div class="module-content collapsed">
+                    <p class="module-description">CTF相关的实践练习题目</p>
+                    <div class="vuln-cards">
+                        <div class="vuln-card" onclick="location.href='/ctf/crypto'">
+                            <h4>密码学</h4>
+                            <p>各类加密解密算法实践</p>
+                            <div class="difficulty-label">难度: 中等</div>
+                        </div>
+                        <div class="vuln-card" onclick="location.href='/ctf/reverse'">
+                            <h4>逆向工程</h4>
+                            <p>软件逆向分析练习</p>
+                            <div class="difficulty-label">难度: 困难</div>
+                        </div>
+                        <div class="vuln-card" onclick="location.href='/ctf/pwn'">
+                            <h4>PWN</h4>
+                            <p>二进制漏洞利用练习</p>
+                            <div class="difficulty-label">难度: 困难</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 渗透测试模块 -->
+            <div class="module">
+                <div class="module-header" onclick="toggleModule(this)">
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                    <h2 class="module-title">渗透测试</h2>
+                </div>
+                <div class="module-content collapsed">
+                    <p class="module-description">渗透测试技术实践</p>
+                    <div class="vuln-cards">
+                        <div class="vuln-card" onclick="location.href='/pentest/recon'">
+                            <h4>信息收集</h4>
+                            <p>目标信息收集技术</p>
+                            <div class="difficulty-label">难度: 简单</div>
+                        </div>
+                        <div class="vuln-card" onclick="location.href='/pentest/exploit'">
+                            <h4>漏洞利用</h4>
+                            <p>常见漏洞利用演示</p>
+                            <div class="difficulty-label">难度: 中等</div>
+                        </div>
+                        <div class="vuln-card" onclick="location.href='/pentest/privilege'">
+                            <h4>权限提升</h4>
+                            <p>系统权限提升技术</p>
+                            <div class="difficulty-label">难度: 困难</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 在其他模块后添加Docker环境管理模块 -->
+            <div class="module">
+                <div class="module-header" onclick="toggleModule(this)">
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                    <h2 class="module-title">Docker环境管理</h2>
+                </div>
+                <div class="module-content collapsed">
+                    <p class="module-description">创建和管理Docker实验环境</p>
+                    <div class="docker-manager">
+                        <!-- 环境类型选择卡片 -->
+                        <div class="env-type-grid">
+                            <div class="env-type-card" onclick="selectEnvType(this, 'web')">
+                                <i class="fas fa-globe"></i>
+                                <h4>Web漏洞环境</h4>
+                                <p>SQL注入、XSS、文件上传等</p>
+                            </div>
+                            <div class="env-type-card" onclick="selectEnvType(this, 'spring')">
+                                <i class="fab fa-java"></i>
+                                <h4>Spring漏洞环境</h4>
+                                <p>Spring框架相关漏洞</p>
+                            </div>
+                            <div class="env-type-card" onclick="selectEnvType(this, 'log4j')">
+                                <i class="fas fa-bug"></i>
+                                <h4>Log4j漏洞环境</h4>
+                                <p>Log4j远程代码执行漏洞</p>
+                            </div>
+                            <div class="env-type-card" onclick="selectEnvType(this, 'fastjson')">
+                                <i class="fas fa-code"></i>
+                                <h4>Fastjson漏洞环境</h4>
+                                <p>Fastjson反序列化漏洞</p>
+                            </div>
+                        </div>
+
+                        <!-- ��度选择和创建按钮 -->
+                        <div class="env-controls">
+                            <select id="difficultySelect" class="docker-select">
+                                <option value="">选择难度</option>
+                                <option value="easy">简单</option>
+                                <option value="medium">中等</option>
+                                <option value="hard">困难</option>
+                            </select>
+                            <button onclick="createContainer()" class="docker-btn create">
+                                <i class="fas fa-plus"></i>创建环境
+                            </button>
+                        </div>
+
+                        <!-- 已创建的容器列表 -->
+                        <div class="docker-containers">
+                            <!-- 容器列表将通过JS动态添加 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="status-bar">
+        <div class="copyright">
+            <i class="fas fa-shield-alt"></i>
+            <span>© 2024 OnlySec. All Rights Reserved.</span>
+        </div>
+        <div class="system-time">
+            <i class="fas fa-clock"></i>
+            <span id="current-time"></span>
+        </div>
+    </div>
+
+    <!-- 添加进度条和加载提示的HTML -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">正在创建环境...</div>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            <div class="loading-status">初始化中...</div>
+        </div>
+    </div>
+
+    <!-- 添加确认对话框 -->
+    <div id="confirmDialog" class="confirm-dialog">
+        <h3>确认操作</h3>
+        <p id="confirmMessage"></p>
+        <div class="confirm-actions">
+            <button class="docker-btn delete" onclick="confirmAction()">确认</button>
+            <button class="docker-btn" onclick="closeConfirmDialog()">取消</button>
+        </div>
+    </div>
+
+    <script>
+        function toggleSubCards(card) {
+            const cardGroup = card.parentElement;
+            const subCards = cardGroup.querySelector('.sub-cards');
+            const allCardGroups = document.querySelectorAll('.vuln-card-group');
+            const vulnerabilityGrid = document.querySelector('.vulnerability-grid');
+            
+            // 如果当前卡片已经是展开状态则恢复所有卡片
+            if (card.classList.contains('expanded')) {
+                // 恢复网格布局
+                vulnerabilityGrid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(250px, 1fr))';
+                
+                // 示所有卡片
+                allCardGroups.forEach(group => {
+                    group.style.display = 'block';
+                    group.style.width = '100%';
+                    group.style.transform = 'none';
+                });
+                
+                // 关闭当前卡片
+                card.classList.remove('expanded');
+                subCards.classList.remove('show');
+            } else {
+                // 将网格布局改为单列
+                vulnerabilityGrid.style.gridTemplateColumns = '1fr';
+                
+                // 隐藏其他卡片
+                allCardGroups.forEach(group => {
+                    if (group !== cardGroup) {
+                        group.style.display = 'none';
+                    }
+                });
+                
+                // 展开当前卡片
+                cardGroup.style.width = '100%';
+                cardGroup.style.transform = 'scale(1.02)';
+                card.classList.add('expanded');
+                subCards.classList.add('show');
+            }
+
+            // 添加点击动画
+            card.style.transform = 'scale(0.98)';
+            setTimeout(() => {
+                card.style.transform = 'scale(1)';
+            }, 100);
+        }
+
+        // 添加模块折叠功能
+        function toggleModule(header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('.toggle-icon');
+            
+            content.classList.toggle('collapsed');
+            icon.style.transform = content.classList.contains('collapsed') 
+                ? 'rotate(-90deg)' 
+                : 'rotate(0)';
+        }
+    </script>
+
+    <canvas id="particleCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // 设置canvas尺寸
+        function setCanvasSize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        setCanvasSize();
+        window.addEventListener('resize', setCanvasSize);
+
+        // 鼠标交互设置
+        const mouse = {
+            x: undefined,
+            y: undefined,
+            radius: 200
+        };
+
+        // 鼠标事件监听
+        canvas.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            mouse.x = undefined;
+            mouse.y = undefined;
+        });
+
+        // 粒子类
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 1.5 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 1;
+                this.speedY = (Math.random() - 0.5) * 1;
+                this.opacity = Math.random() * 0.5 + 0.2;
+                this.color = '#00ff9d';
+                this.originalX = this.x;
+                this.originalY = this.y;
+            }
+
+            update() {
+                // 基础移动
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                // 检查
+                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+
+                // 添加微小的随机移动
+                this.speedX += (Math.random() - 0.5) * 0.02;
+                this.speedY += (Math.random() - 0.5) * 0.02;
+
+                // 限制速度
+                this.speedX = Math.max(Math.min(this.speedX, 1), -1);
+                this.speedY = Math.max(Math.min(this.speedY, 1), -1);
+
+                // 鼠标交互
+                if (mouse.x !== undefined) {
+                    const dx = this.x - mouse.x;
+                    const dy = this.y - mouse.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < mouse.radius) {
+                        const force = (mouse.radius - distance) / mouse.radius;
+                        const angle = Math.atan2(dy, dx);
+                        this.x += Math.cos(angle) * force * 5;
+                        this.y += Math.sin(angle) * force * 5;
+                    }
+                }
+
+                // 缓慢返回原始位置
+                const dx = this.originalX - this.x;
+                const dy = this.originalY - this.y;
+                this.x += dx * 0.01;
+                this.y += dy * 0.01;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.opacity;
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        // 创建更多粒子
+        const particles = [];
+        const particleCount = 150;
+
+        // 动画循环
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+
+            drawLines();
+            
+            requestAnimationFrame(animate);
+        }
+
+        // 创建粒子开始动画
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+        animate();
+
+        // 优化的连线函数
+        function drawLines() {
+            ctx.lineWidth = 0.5;
+
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 150) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = '#00ff9d';
+                        ctx.globalAlpha = 0.15 * (1 - distance / 150);
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+    </script>
+
+    <script>
+        // 修改后的打字机效果实现
+        function typeWriter(element, text, speed = 100, delay = 0) {
+            // 确保元素内容初始为空
+            element.textContent = '';
+            
+            return new Promise(resolve => {
+                let i = 0;
+                setTimeout(() => {
+                    const timer = setInterval(() => {
+                        if (i < text.length) {
+                            element.textContent += text.charAt(i);
+                            i++;
+                        } else {
+                            clearInterval(timer);
+                            element.classList.add('typing-done');
+                            resolve();
+                        }
+                    }, speed);
+                }, delay);
+            });
+        }
+
+        // 执行打字机效果
+        async function runTypewriter() {
+            const title = document.getElementById('typewriter-title');
+            const text = document.getElementById('typewriter-text');
+            
+            // 标题打字效果 - 速度从150调整到200
+            await typeWriter(title, '渗透测试工程师宣言', 200);
+            
+            // 文本打字效果 - 速度从50调整到80
+            const manifesto = `在这个数字化的时代，我们是网络安全的守护者。
+
+以好奇之心探索系统，以敬畏之心对待权限。深入代码的迷宫，穿越防御的壁垒，不是为了破坏，而是为了构建更坚固的堡垒。
+
+我们追寻漏洞的踪迹，不是为了利用它们制造乱，而是为了在攻击者之前发现并修复它们。在这个过程中，我���始终保持职业操守，遵循道德准则。
+
+技术是一把双刃剑，我们选择用它来保护而不是伤害。每一次测试都是一次学习，每份报告都是一份责任。我们用专业的技能和严谨的态度，守护着无数用户的数字资产和隐私安全。
+
+这条路上没有捷径，唯有持续学习，不断进步。因为黑客的技术在进化，防御的手段也必须升级。我们以此为荣，以此为责。
+
+这，就是我们选择的道路，这，就是渗透测试工程师的使命。`;
+            
+            // 延迟时间从500调整到800
+            await typeWriter(text, manifesto, 80, 800);
+        }
+
+        // 确保在页面完全加载后执行
+        window.addEventListener('load', runTypewriter);
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('matrixCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // 设置canvas尺寸
+            function setCanvasSize() {
+                const welcomeSection = document.querySelector('.welcome-section');
+                canvas.width = welcomeSection.offsetWidth;
+                canvas.height = welcomeSection.offsetHeight;
+            }
+            setCanvasSize();
+            window.addEventListener('resize', setCanvasSize);
+
+            // 更丰富的字符集
+            const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネヒフヘホマミムメヤユヨラリルレロワヲン';
+            const fontSize = 12;
+            const columns = Math.floor(canvas.width / fontSize);
+            const drops = new Array(columns).fill(1);
+            
+            // 添加随机速度
+            const speeds = new Array(columns).fill(0).map(() => Math.random() * 2 + 1);
+            
+            // 添加不同的绿色阴影
+            const greens = ['#00ff9d', '#0f0', '#90EE90', '#98FB98'];
+
+            function drawMatrix() {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.07)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                for (let i = 0; i < drops.length; i++) {
+                    // 随机选择字符和颜色
+                    const char = chars[Math.floor(Math.random() * chars.length)];
+                    const green = greens[Math.floor(Math.random() * greens.length)];
+                    
+                    // 设置渐变色
+                    const gradient = ctx.createLinearGradient(
+                        i * fontSize, drops[i] * fontSize - fontSize,
+                        i * fontSize, drops[i] * fontSize
+                    );
+                    gradient.addColorStop(0, 'rgba(0, 255, 157, 0)');
+                    gradient.addColorStop(0.8, green);
+                    gradient.addColorStop(1, 'rgba(0, 255, 157, 0.3)');
+                    
+                    ctx.font = `${fontSize}px monospace`;
+                    ctx.fillStyle = gradient;
+
+                    // 绘制字符
+                    ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+
+                    // 用不同的速度更新位置
+                    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                        drops[i] = 0;
+                    }
+                    drops[i] += speeds[i] * 0.1;
+                }
+            }
+
+            function animate() {
+                drawMatrix();
+                requestAnimationFrame(animate);
+            }
+
+            animate();
+        });
+    </script>
+
+    <script>
+        // 更新时间的函数
+        function updateTime() {
+            const now = new Date();
+            const options = {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            };
+            document.getElementById('current-time').textContent = 
+                now.toLocaleString('zh-CN', options).replace(/\//g, '-');
+        }
+
+        // 页面加载立即更新一次
+        updateTime();
+        
+        // 每秒更新一次时间
+        setInterval(updateTime, 1000);
+    </script>
+
+    <script>
+        let selectedEnvType = null;
+
+        function selectEnvType(card, type) {
+            // 移除其他卡片的选中状态
+            document.querySelectorAll('.env-type-card').forEach(c => {
+                c.classList.remove('selected');
+            });
+            
+            // 添加选中状态
+            card.classList.add('selected');
+            selectedEnvType = type;
+        }
+
+        async function createContainer() {
+            if (!selectedEnvType) {
+                alert('请选择环境类型');
+                return;
+            }
+
+            const difficulty = document.getElementById('difficultySelect').value;
+            if (!difficulty) {
+                alert('请选择难度级别');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/docker/container', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        imageType: selectedEnvType, 
+                        difficulty: difficulty 
+                    })
+                });
+
+                if (response.ok) {
+                    loadContainers();
+                } else {
+                    alert('创建容器失败');
+                }
+            } catch (error) {
+                console.error('创建容器失败:', error);
+            }
+        }
+
+        // 获取容器列表
+        async function loadContainers() {
+            try {
+                const response = await fetch('/api/docker/containers');
+                const containers = await response.json();
+                updateContainersList(containers);
+            } catch (error) {
+                console.error('加载容器列表失败:', error);
+            }
+        }
+
+        // 停止容器
+        async function stopContainer(containerId) {
+            try {
+                const response = await fetch(`/api/docker/container/${containerId}/stop`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    loadContainers();
+                }
+            } catch (error) {
+                console.error('停止容器失败:', error);
+            }
+        }
+
+        // 删除容器
+        async function deleteContainer(containerId) {
+            try {
+                const response = await fetch(`/api/docker/container/${containerId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    loadContainers();
+                }
+            } catch (error) {
+                console.error('删除容器失败:', error);
+            }
+        }
+
+        // 更新容器列表显示
+        function updateContainersList(containers) {
+            const containersList = document.querySelector('.docker-containers');
+            containersList.innerHTML = containers.map(container => `
+                <div class="container-card">
+                    <div class="container-info">
+                        <span>环境类型: <strong>${container.imageType}</strong></span>
+                        <span>难度级别: <strong>${container.difficulty}</strong></span>
+                        <span>容器ID: <strong>${container.id.substring(0, 12)}</strong></span>
+                        <span>访问地址: <strong><a href="http://localhost:${container.port}" target="_blank">http://localhost:${container.port}</a></strong></span>
+                        <div class="status-badge ${container.status === 'running' ? 'running' : 'stopped'}">
+                            <i class="fas fa-circle"></i>
+                            ${container.status === 'running' ? '运行中' : '已停止'}
+                        </div>
+                    </div>
+                    <div class="container-actions">
+                        ${container.status === 'running' ? 
+                            `<button onclick="stopContainer('${container.id}')" class="docker-btn stop">
+                                <i class="fas fa-stop"></i>停止
+                            </button>` : ''
+                        }
+                        <button onclick="deleteContainer('${container.id}')" class="docker-btn delete">
+                            <i class="fas fa-trash"></i>删除
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 页面加载时获取容器列表
+        document.addEventListener('DOMContentLoaded', loadContainers);
+    </script>
+</body>
+</html>

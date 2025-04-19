@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>重定向漏洞测试</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <script src="/js/jquery.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="text-center">重定向漏洞测试</h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- 重定向示例说明 -->
+                        <div class="alert alert-info mb-4">
+                            <h5>重定向测试说明:</h5>
+                            <pre class="mb-0">
+测试URL示例:
+1. 正常重定向: http://www.baidu.com
+2. 恶意重定向: http://evil-example.com
+3. 本地重定向: /login
+
+访问格式: /redirect/url?target=http://example.com
+                            </pre>
+                        </div>
+
+                        <!-- 重定向表单 -->
+                        <form id="redirectForm" class="mb-4">
+                            <div class="form-group">
+                                <label for="targetUrl">目标URL:</label>
+                                <input type="text" class="form-control" id="targetUrl" name="target" 
+                                       placeholder="请输入重定向目标URL">
+                            </div>
+                            <button type="submit" class="btn btn-primary mt-3">测试重定向</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#redirectForm').on('submit', function(e) {
+                e.preventDefault();
+                var targetUrl = $('#targetUrl').val();
+                
+                // 直接进行重定向
+                window.location.href = '/redirect/url?target=' + encodeURIComponent(targetUrl);
+            });
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,152 @@
+<div th:fragment="web-Encryption">
+    <div class="module-header">
+        <i class="fas fa-chevron-down toggle-icon"></i>
+        <h2 class="module-title">Web前端加解密环境</h2>
+    </div>
+
+    <div class="vulnerability-grid">
+        <div class="vuln-card-group">
+            <div class="vuln-card main-card" onclick="location.href='/api/md5-login'">
+                <div>
+                    <h4>账号密码加密</h4>
+                    <p>账号密码均采用base64+md5进行加密</p>
+                </div>
+                <div class="difficulty-label">
+                    <i class="fas fa-signal"></i>
+                    难度: 简单
+                </div>
+            </div>
+        </div>
+
+        <div class="vuln-card-group">
+            <div class="vuln-card main-card" onclick="location.href='/api/secure-login'">
+                <div>
+                    <h4>防重放加签</h4>
+                    <p>数据包中存在签名不能重放数据包的场景</p>
+                </div>
+                <div class="difficulty-label">
+                    <i class="fas fa-signal"></i>
+                    难度: 高
+                </div>
+            </div>
+        </div>
+        <div class="vuln-card-group">
+            <div class="vuln-card main-card" onclick="location.href='/api/sm4-login'">
+            <div>
+                <h4>国密sm4</h4>
+                <p>账号密码采用sm4加密的场景</p>
+            </div>
+            <div class="difficulty-label">
+                <i class="fas fa-signal"></i>
+                难度: 中等
+            </div>
+        </div>
+        </div>
+        <div class="vuln-card-group">
+            <div class="vuln-card main-card" onclick="location.href='/api/aes-login'">
+                <div>
+                    <h4>AES加密</h4>
+                    <p>加密key从服务端获取随机值</p>
+                </div>
+                <div class="difficulty-label">
+                    <i class="fas fa-signal"></i>
+                    难度: 中等
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .vuln-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        box-shadow: 5px 5px 15px #d9d9d9,
+        -5px -5px 15px #ffffff;
+    }
+
+    .vuln-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 20px 30px rgba(0, 0, 0, 0.15);
+        background: linear-gradient(145deg, #ffffff, #f8f8f8);
+    }
+
+    /* 添加点击效果 */
+    .vuln-card:active {
+        transform: scale(0.98);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    /* 添加霓虹光效果 */
+    .vuln-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+                120deg,
+                transparent,
+                rgba(255, 255, 255, 0.3),
+                transparent
+        );
+        transition: 0.5s;
+    }
+
+    .vuln-card:hover::before {
+        left: 100%;
+    }
+
+    /* 为标题添加渐变色效果 */
+    .vuln-card:hover h4 {
+        background: linear-gradient(45deg, #2c3e50, #3498db);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        transition: all 0.3s ease;
+    }
+
+    /* 为难度标签添加动画效果 */
+    .difficulty-label {
+        margin-top: 15px;
+        padding-top: 10px;
+        border-top: 1px solid #eee;
+        color: #666;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.3s ease;
+    }
+
+    .vuln-card:hover .difficulty-label {
+        transform: translateX(5px);
+    }
+
+    .vuln-card:hover .difficulty-label i {
+        transform: rotate(360deg);
+        transition: transform 0.5s ease;
+    }
+
+    /* 根据难度级别设置不同的悬停效果 */
+    .difficulty-easy:hover {
+        border-color: #27ae60;
+        box-shadow: 0 8px 15px rgba(39, 174, 96, 0.2);
+    }
+
+    .difficulty-medium:hover {
+        border-color: #f39c12;
+        box-shadow: 0 8px 15px rgba(243, 156, 18, 0.2);
+    }
+
+    .difficulty-hard:hover {
+        border-color: #e74c3c;
+        box-shadow: 0 8px 15px rgba(231, 76, 60, 0.2);
+    }
+</style>
