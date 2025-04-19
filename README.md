@@ -1,6 +1,7 @@
 # OnlySec-Labs-无相
 
 OnlySec-Labs-无相 是一个基于Spring Boot的网络安全实训靶场，用于学习和实践Web安全相关知识。该靶场提供了多种常见Web安全漏洞的实战环境，帮助学习者深入理解各类安全漏洞的原理、利用方式和防御措施。
+![图片](https://github.com/user-attachments/assets/a9fbba3b-fce0-4a9a-bae6-e334423cf31d)
 
 ## 目前只实现一些基础功能,后续持续模块开发中
 
